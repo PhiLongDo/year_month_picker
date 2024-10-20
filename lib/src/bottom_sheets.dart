@@ -1,11 +1,78 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
-class YearMonthPicker extends StatefulWidget {
-  YearMonthPicker({
+Future<DateTime?> showYearMonthPickerBottomSheet({
+  required BuildContext context,
+  required DateTime maxYearMonth,
+  required DateTime minYearMonth,
+  DateTime? initYearMonth,
+  Color? backgroundColor,
+  BoxBorder? border,
+  Widget Function(BuildContext context, int year)? buildYearItem,
+  Widget Function(BuildContext context, int month)? buildMonthItem,
+  void Function(int year)? onYearChanged,
+  void Function(int month)? onMonthChanged,
+}) {
+  late int year;
+  late int month;
+
+  return showModalBottomSheet<DateTime?>(
+    context: context,
+    useSafeArea: true,
+    builder: (BuildContext context) {
+      return SizedBox(
+        height: 250,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(null);
+                    },
+                    child: const Text('Hủy'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(DateTime(year, month));
+                    },
+                    child: const Text('Chọn'),
+                  )
+                ],
+              ),
+            ),
+            YearMonthPickerBottomSheet(
+              maxYearMonth: maxYearMonth,
+              minYearMonth: minYearMonth,
+              initYearMonth: initYearMonth,
+              backgroundColor: backgroundColor,
+              border: border,
+              buildMonthItem: buildMonthItem,
+              buildYearItem: buildYearItem,
+              onMonthChanged: (value) {
+                month = value;
+                onMonthChanged?.call(month);
+              },
+              onYearChanged: (value) {
+                year = value;
+                onYearChanged?.call(year);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+class YearMonthPickerBottomSheet extends StatefulWidget {
+  YearMonthPickerBottomSheet({
     super.key,
-    required this.maxYear,
-    required this.minYear,
+    required this.maxYearMonth,
+    required this.minYearMonth,
     this.buildYearItem,
     this.buildMonthItem,
     this.backgroundColor = Colors.transparent,
@@ -15,25 +82,25 @@ class YearMonthPicker extends StatefulWidget {
     DateTime? initYearMonth,
   }) {
     assert(
-      maxYear >= minYear,
+      maxYearMonth.year >= minYearMonth.year,
       "maxYear must be greater than or equal to minYear",
     );
     this.initYearMonth = initYearMonth ?? DateTime.now();
     if (initYearMonth == null) {
       assert(
-        maxYear >= DateTime.now().year,
+        maxYearMonth.year >= DateTime.now().year,
         """maxYear must be greater than or equal to current year when initYearMonth is null""",
       );
     } else {
       assert(
-        maxYear >= initYearMonth.year,
+        maxYearMonth.year >= initYearMonth.year,
         "maxYear must be greater than or equal to the year of initYearMonth",
       );
     }
   }
 
-  final int maxYear;
-  final int minYear;
+  final DateTime maxYearMonth;
+  final DateTime minYearMonth;
   late final DateTime initYearMonth;
 
   final Color? backgroundColor;
@@ -45,13 +112,12 @@ class YearMonthPicker extends StatefulWidget {
   final void Function(int month)? onMonthChanged;
 
   @override
-  State<YearMonthPicker> createState() => _YearMonthPickerState();
+  State<YearMonthPickerBottomSheet> createState() =>
+      _YearMonthPickerBottomSheetState();
 }
 
-class _YearMonthPickerState extends State<YearMonthPicker> {
-  final _yearController = CarouselSliderController();
-  final _monthController = CarouselSliderController();
-
+class _YearMonthPickerBottomSheetState
+    extends State<YearMonthPickerBottomSheet> {
   Widget Function(BuildContext, int year) get _buildYearItem =>
       widget.buildYearItem ?? _defaultBuildItem;
 
@@ -77,6 +143,13 @@ class _YearMonthPickerState extends State<YearMonthPicker> {
       );
 
   @override
+  void initState() {
+    widget.onYearChanged?.call(_initYearMonth.year);
+    widget.onMonthChanged?.call(_initYearMonth.month);
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
@@ -90,7 +163,6 @@ class _YearMonthPickerState extends State<YearMonthPicker> {
           Expanded(
             child: LayoutBuilder(builder: (context, constraints) {
               return CarouselSlider(
-                carouselController: _monthController,
                 options: CarouselOptions(
                   aspectRatio: constraints.maxWidth / constraints.maxHeight,
                   initialPage: _initYearMonth.month - 1,
@@ -114,23 +186,22 @@ class _YearMonthPickerState extends State<YearMonthPicker> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return CarouselSlider(
-                  carouselController: _yearController,
                   options: CarouselOptions(
                     aspectRatio: constraints.maxWidth / constraints.maxHeight,
-                    initialPage: widget.maxYear - widget.minYear,
+                    initialPage: _initYearMonth.year - widget.minYearMonth.year,
                     enlargeFactor: 0.38,
                     viewportFraction: 0.3,
                     scrollDirection: Axis.vertical,
                     enlargeCenterPage: true,
                     onPageChanged: (index, _) {
-                      final year = widget.minYear + index;
+                      final year = widget.minYearMonth.year + index;
                       widget.onYearChanged?.call(year);
                     },
                   ),
                   items: List.generate(
-                    widget.maxYear - widget.minYear,
+                    widget.maxYearMonth.year - widget.minYearMonth.year,
                     (index) {
-                      final year = widget.minYear + index;
+                      final year = widget.minYearMonth.year + index;
                       return _buildYearItem(context, year);
                     },
                   ),
