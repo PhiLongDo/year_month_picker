@@ -7,9 +7,10 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   required int minYear,
   DateTime? initYearMonth,
   Color? backgroundColor,
-  BoxBorder? border,
   Widget Function(BuildContext context, int year)? buildYearItem,
   Widget Function(BuildContext context, int month)? buildMonthItem,
+  Widget Function(BuildContext context)? buildOkButton,
+  Widget Function(BuildContext context)? buildCancelButton,
   void Function(int year)? onYearChanged,
   void Function(int month)? onMonthChanged,
   bool? showDragHandle,
@@ -21,6 +22,7 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
     context: context,
     useSafeArea: true,
     showDragHandle: showDragHandle,
+    backgroundColor: backgroundColor,
     builder: (BuildContext context) {
       return Padding(
         padding: const EdgeInsets.all(8.0),
@@ -36,13 +38,14 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
                     onPressed: () {
                       Navigator.of(context).pop(null);
                     },
-                    child: const Text('Cancel'),
+                    child: buildCancelButton?.call(context) ??
+                        const Text('Cancel'),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop(DateTime(year, month));
                     },
-                    child: const Text('OK'),
+                    child: buildOkButton?.call(context) ?? const Text('OK'),
                   )
                 ],
               ),
@@ -52,8 +55,6 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
               maxYear: maxYear,
               minYear: minYear,
               initYearMonth: initYearMonth,
-              backgroundColor: backgroundColor,
-              border: border,
               buildMonthItem: buildMonthItem,
               buildYearItem: buildYearItem,
               onMonthChanged: (value) {
@@ -78,8 +79,6 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
     required this.minYear,
     this.buildYearItem,
     this.buildMonthItem,
-    this.backgroundColor = Colors.transparent,
-    this.border,
     this.onYearChanged,
     this.onMonthChanged,
     DateTime? initYearMonth,
@@ -106,8 +105,6 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
   final int minYear;
   late final DateTime initYearMonth;
 
-  final Color? backgroundColor;
-  final BoxBorder? border;
   final Widget Function(BuildContext context, int year)? buildYearItem;
   final Widget Function(BuildContext context, int month)? buildMonthItem;
 
@@ -154,11 +151,7 @@ class _YearMonthPickerBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: widget.border,
-        color: widget.backgroundColor,
-      ),
+    return SizedBox(
       height: 180,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
