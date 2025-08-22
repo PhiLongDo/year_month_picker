@@ -20,16 +20,34 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       home: Scaffold(
-        body: Center(
-          child: YearMonthPicker(
-            maxYear: 3000,
-            minYear: 2000,
-            initYearMonth: DateTime.now(),
-          ),
-        ),
+        body: Center(child: PreviewWidget()),
       ),
+    );
+  }
+}
+
+class PreviewWidget extends StatelessWidget {
+  const PreviewWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 16,
+      children: [
+        ElevatedButton(
+          onPressed: () {
+            showYearMonthPickerBottomSheet(
+              context: context,
+              maxYear: 3000,
+              minYear: 2000,
+            );
+          },
+          child: const Text('Show bottom sheet'),
+        ),
+      ],
     );
   }
 }
