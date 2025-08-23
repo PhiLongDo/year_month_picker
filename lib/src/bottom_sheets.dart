@@ -3,15 +3,17 @@ import 'package:flutter/material.dart';
 
 Future<DateTime?> showYearMonthPickerBottomSheet({
   required BuildContext context,
-  required DateTime maxYearMonth,
-  required DateTime minYearMonth,
+  required int maxYear,
+  required int minYear,
   DateTime? initYearMonth,
   Color? backgroundColor,
-  BoxBorder? border,
   Widget Function(BuildContext context, int year)? buildYearItem,
   Widget Function(BuildContext context, int month)? buildMonthItem,
+  Widget Function(BuildContext context)? buildOkButton,
+  Widget Function(BuildContext context)? buildCancelButton,
   void Function(int year)? onYearChanged,
   void Function(int month)? onMonthChanged,
+  bool? showDragHandle,
 }) {
   late int year;
   late int month;
@@ -19,13 +21,18 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   return showModalBottomSheet<DateTime?>(
     context: context,
     useSafeArea: true,
+    showDragHandle: showDragHandle,
+    backgroundColor: backgroundColor,
     builder: (BuildContext context) {
-      return SizedBox(
-        height: 250,
+      final MaterialLocalizations localizations =
+          MaterialLocalizations.of(context);
+      return Padding(
+        padding: const EdgeInsets.all(8.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -33,23 +40,24 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
                     onPressed: () {
                       Navigator.of(context).pop(null);
                     },
-                    child: const Text('Hủy'),
+                    child: buildCancelButton?.call(context) ??
+                        Text(localizations.cancelButtonLabel),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop(DateTime(year, month));
                     },
-                    child: const Text('Chọn'),
+                    child: buildOkButton?.call(context) ??
+                        Text(localizations.okButtonLabel),
                   )
                 ],
               ),
             ),
-            YearMonthPickerBottomSheet(
-              maxYearMonth: maxYearMonth,
-              minYearMonth: minYearMonth,
+            const Divider(),
+            _YearMonthPickerBottomSheet(
+              maxYear: maxYear,
+              minYear: minYear,
               initYearMonth: initYearMonth,
-              backgroundColor: backgroundColor,
-              border: border,
               buildMonthItem: buildMonthItem,
               buildYearItem: buildYearItem,
               onMonthChanged: (value) {
@@ -68,43 +76,38 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   );
 }
 
-class YearMonthPickerBottomSheet extends StatefulWidget {
-  YearMonthPickerBottomSheet({
-    super.key,
-    required this.maxYearMonth,
-    required this.minYearMonth,
+class _YearMonthPickerBottomSheet extends StatefulWidget {
+  _YearMonthPickerBottomSheet({
+    required this.maxYear,
+    required this.minYear,
     this.buildYearItem,
     this.buildMonthItem,
-    this.backgroundColor = Colors.transparent,
-    this.border,
     this.onYearChanged,
     this.onMonthChanged,
     DateTime? initYearMonth,
   }) {
     assert(
-      maxYearMonth.year >= minYearMonth.year,
+      maxYear >= minYear,
       "maxYear must be greater than or equal to minYear",
     );
     this.initYearMonth = initYearMonth ?? DateTime.now();
     if (initYearMonth == null) {
       assert(
-        maxYearMonth.year >= DateTime.now().year,
+        maxYear >= DateTime.now().year,
         """maxYear must be greater than or equal to current year when initYearMonth is null""",
       );
     } else {
       assert(
-        maxYearMonth.year >= initYearMonth.year,
+        maxYear >= initYearMonth.year,
         "maxYear must be greater than or equal to the year of initYearMonth",
       );
     }
   }
 
-  final DateTime maxYearMonth;
-  final DateTime minYearMonth;
+  final int maxYear;
+  final int minYear;
   late final DateTime initYearMonth;
 
-  final Color? backgroundColor;
-  final BoxBorder? border;
   final Widget Function(BuildContext context, int year)? buildYearItem;
   final Widget Function(BuildContext context, int month)? buildMonthItem;
 
@@ -112,12 +115,12 @@ class YearMonthPickerBottomSheet extends StatefulWidget {
   final void Function(int month)? onMonthChanged;
 
   @override
-  State<YearMonthPickerBottomSheet> createState() =>
+  State<_YearMonthPickerBottomSheet> createState() =>
       _YearMonthPickerBottomSheetState();
 }
 
 class _YearMonthPickerBottomSheetState
-    extends State<YearMonthPickerBottomSheet> {
+    extends State<_YearMonthPickerBottomSheet> {
   Widget Function(BuildContext, int year) get _buildYearItem =>
       widget.buildYearItem ?? _defaultBuildItem;
 
@@ -130,13 +133,13 @@ class _YearMonthPickerBottomSheetState
         alignment: Alignment.center,
         margin: const EdgeInsets.symmetric(horizontal: 4.0),
         decoration: BoxDecoration(
-          color: Colors.grey,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(100),
         ),
         child: Text(
           '$number',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
             fontSize: 18,
           ),
         ),
@@ -151,11 +154,7 @@ class _YearMonthPickerBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: widget.border,
-        color: widget.backgroundColor,
-      ),
+    return SizedBox(
       height: 180,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -188,20 +187,20 @@ class _YearMonthPickerBottomSheetState
                 return CarouselSlider(
                   options: CarouselOptions(
                     aspectRatio: constraints.maxWidth / constraints.maxHeight,
-                    initialPage: _initYearMonth.year - widget.minYearMonth.year,
+                    initialPage: _initYearMonth.year - widget.minYear,
                     enlargeFactor: 0.38,
                     viewportFraction: 0.3,
                     scrollDirection: Axis.vertical,
                     enlargeCenterPage: true,
                     onPageChanged: (index, _) {
-                      final year = widget.minYearMonth.year + index;
+                      final year = widget.minYear + index;
                       widget.onYearChanged?.call(year);
                     },
                   ),
                   items: List.generate(
-                    widget.maxYearMonth.year - widget.minYearMonth.year,
+                    widget.maxYear - widget.minYear,
                     (index) {
-                      final year = widget.minYearMonth.year + index;
+                      final year = widget.minYear + index;
                       return _buildYearItem(context, year);
                     },
                   ),
