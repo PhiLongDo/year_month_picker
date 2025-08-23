@@ -24,6 +24,8 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
     showDragHandle: showDragHandle,
     backgroundColor: backgroundColor,
     builder: (BuildContext context) {
+      final MaterialLocalizations localizations =
+          MaterialLocalizations.of(context);
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -39,13 +41,14 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
                       Navigator.of(context).pop(null);
                     },
                     child: buildCancelButton?.call(context) ??
-                        const Text('Cancel'),
+                        Text(localizations.cancelButtonLabel),
                   ),
                   TextButton(
                     onPressed: () {
                       Navigator.of(context).pop(DateTime(year, month));
                     },
-                    child: buildOkButton?.call(context) ?? const Text('OK'),
+                    child: buildOkButton?.call(context) ??
+                        Text(localizations.okButtonLabel),
                   )
                 ],
               ),
