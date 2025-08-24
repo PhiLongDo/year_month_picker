@@ -1,6 +1,8 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 
+import 'validations.dart';
+
 Future<DateTime?> showYearMonthPickerBottomSheet({
   required BuildContext context,
   Color? barrierColor,
@@ -21,21 +23,11 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   void Function(int month)? onMonthChanged,
   bool? showDragHandle,
 }) {
-  assert(
-    lastYear >= firstYear,
-    "lastYear must be greater than or equal to firstYear",
+  validateYearMonthPickerParams(
+    lastYear: lastYear,
+    firstYear: firstYear,
+    initialYearMonth: initialYearMonth,
   );
-  if (initialYearMonth == null) {
-    assert(
-      lastYear >= DateTime.now().year,
-      """lastYear must be greater than or equal to current year when initialYearMonth is null""",
-    );
-  } else {
-    assert(
-      lastYear >= initialYearMonth.year,
-      "lastYear must be greater than or equal to the year of initialYearMonth",
-    );
-  }
 
   Widget bottomSheet = _YearMonthPickerBottomSheet(
     lastYear: lastYear,
@@ -87,22 +79,12 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
     this.onMonthChanged,
     DateTime? initialYearMonth,
   }) {
-    assert(
-      lastYear >= firstYear,
-      "lastYear must be greater than or equal to firstYear",
+    validateYearMonthPickerParams(
+      lastYear: lastYear,
+      firstYear: firstYear,
+      initialYearMonth: initialYearMonth,
     );
     this.initialYearMonth = initialYearMonth ?? DateTime.now();
-    if (initialYearMonth == null) {
-      assert(
-        lastYear >= DateTime.now().year,
-        """lastYear must be greater than or equal to current year when initialYearMonth is null""",
-      );
-    } else {
-      assert(
-        lastYear >= initialYearMonth.year,
-        "lastYear must be greater than or equal to the year of initialYearMonth",
-      );
-    }
   }
 
   final int lastYear;

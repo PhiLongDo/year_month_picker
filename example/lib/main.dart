@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'bottom_sheet_preview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'dialog_preview.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -38,11 +40,20 @@ class _MyAppState extends State<MyApp> {
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            spacing: 24,
             children: [
               yearMonthSelected != null
                   ? Text(DateFormat.yMMMM().format(yearMonthSelected!))
                   : const Text('No data'),
               BottomSheetPreview(
+                initYearMonth: yearMonthSelected,
+                onYearMonthSelected: (dateTime) {
+                  setState(() {
+                    yearMonthSelected = dateTime;
+                  });
+                },
+              ),
+              DialogPreview(
                 initYearMonth: yearMonthSelected,
                 onYearMonthSelected: (dateTime) {
                   setState(() {
