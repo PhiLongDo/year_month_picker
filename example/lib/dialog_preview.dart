@@ -40,14 +40,32 @@ class DialogPreview extends StatelessWidget {
               firstYear: 2000,
               initialYearMonth: initYearMonth,
               backgroundColor: Colors.white,
+              buildHelperText: (context) {
+                return const Text(
+                  'Chọn tháng và năm',
+                  style: TextStyle(
+                    color: Colors.deepOrange,
+                  ),
+                );
+              },
               locale: const Locale("vi"),
+              buildYearMonthText: (context, year, month) {
+                return Text(
+                  DateFormat.yMMMM("vi").format(DateTime(year, month)),
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                );
+              },
               buildMonthItem: (context, month) {
                 return Container(
                   alignment: Alignment.center,
                   child: Text(
                     DateFormat.MMMM("vi").format(DateTime(2025, month)),
                     style: const TextStyle(
-                      color: Colors.red,
+                      color: Colors.deepPurple,
                       fontSize: 18,
                     ),
                   ),
@@ -60,7 +78,7 @@ class DialogPreview extends StatelessWidget {
                   child: Text(
                     '$year',
                     style: const TextStyle(
-                      color: Colors.red,
+                      color: Colors.purple,
                       fontWeight: FontWeight.bold,
                       fontSize: 24,
                     ),

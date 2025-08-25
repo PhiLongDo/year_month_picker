@@ -25,6 +25,8 @@ Future<DateTime?> showYearMonthPickerDialog({
   Widget Function(BuildContext context)? buildOkButton,
   Widget Function(BuildContext context)? buildCancelButton,
   Widget Function(BuildContext context)? buildHelperText,
+  Widget Function(BuildContext context, int year, int month)?
+      buildYearMonthText,
   void Function(int year)? onYearChanged,
   void Function(int month)? onMonthChanged,
 }) {
@@ -43,6 +45,7 @@ Future<DateTime?> showYearMonthPickerDialog({
     buildOkButton: buildOkButton,
     buildYearItem: buildYearItem,
     buildHelperText: buildHelperText,
+    buildYearMonthText: buildYearMonthText,
     onMonthChanged: onMonthChanged,
     onYearChanged: onYearChanged,
     backgroundColor: backgroundColor,
@@ -84,6 +87,7 @@ class _YearMonthPickerDialog extends StatefulWidget {
     this.buildOkButton,
     this.buildCancelButton,
     this.buildHelperText,
+    this.buildYearMonthText,
     this.onYearChanged,
     this.onMonthChanged,
     this.backgroundColor,
@@ -110,9 +114,12 @@ class _YearMonthPickerDialog extends StatefulWidget {
   final Widget Function(BuildContext context)? buildOkButton;
   final Widget Function(BuildContext context)? buildCancelButton;
   final Widget Function(BuildContext context)? buildHelperText;
+  final Widget Function(BuildContext context, int year, int month)?
+      buildYearMonthText;
 
   final void Function(int year)? onYearChanged;
   final void Function(int month)? onMonthChanged;
+
   @override
   State<_YearMonthPickerDialog> createState() => _YearMonthPickerDialogState();
 }
@@ -159,46 +166,35 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final MaterialLocalizations localizations =
-        MaterialLocalizations.of(context);
-    return AlertDialog(
-      title: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          widget.buildHelperText?.call(context) ?? const SizedBox.shrink(),
-          Text(
-            DateFormat.yMMMM(widget.locale?.languageCode)
-                .format(DateTime(_year, _month)),
-            style: const TextStyle(fontSize: 24),
-          )
-        ],
-      ),
+    return Dialog(
       backgroundColor: widget.backgroundColor,
-      actions: [
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(null);
-          },
-          child: widget.buildCancelButton?.call(context) ??
-              Text(localizations.cancelButtonLabel),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              widget.buildHelperText?.call(context) ?? const SizedBox.shrink(),
+              _buildYearMonthText(),
+              const Divider(),
+              _buildYearSelector(),
+              _buildMonthSelector(),
+              _buildActions(context),
+            ],
+          ),
         ),
-        TextButton(
-          onPressed: () {
-            Navigator.of(context).pop(DateTime(_year, _month));
-          },
-          child: widget.buildOkButton?.call(context) ??
-              Text(localizations.okButtonLabel),
-        ),
-      ],
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Divider(),
-          _buildYearSelector(),
-          _buildMonthSelector(),
-        ],
       ),
     );
+  }
+
+  Widget _buildYearMonthText() {
+    return widget.buildYearMonthText?.call(context, _year, _month) ??
+        Text(
+          DateFormat.yMMMM(widget.locale?.languageCode)
+              .format(DateTime(_year, _month)),
+          style: Theme.of(context).textTheme.headlineSmall,
+        );
   }
 
   Widget _buildYearSelector() {
@@ -263,37 +259,62 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   Widget _buildMonthRow(int row) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
       children: List<Widget>.generate(3, (index) {
         final month = row * 3 + index + 1;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _month = month;
-                widget.onMonthChanged?.call(_month);
-              });
-            },
-            child: Container(
-              constraints: const BoxConstraints(minWidth: 100, minHeight: 60),
-              padding: const EdgeInsets.symmetric(
-                vertical: 16.0,
-                horizontal: 4.0,
-              ),
-              decoration: BoxDecoration(
-                color: _month == month
-                    ? Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.2)
-                    : null,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              alignment: Alignment.center,
-              child: _buildMonthItem(context, month),
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _month = month;
+              widget.onMonthChanged?.call(_month);
+            });
+          },
+          child: Container(
+            constraints: const BoxConstraints(
+              minWidth: 100,
+              minHeight: 60,
             ),
+            padding: const EdgeInsets.symmetric(
+              vertical: 16.0,
+              horizontal: 4.0,
+            ),
+            decoration: BoxDecoration(
+              color: _month == month
+                  ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
+                  : null,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            alignment: Alignment.center,
+            child: _buildMonthItem(context, month),
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildActions(BuildContext context) {
+    final MaterialLocalizations localizations =
+        MaterialLocalizations.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      spacing: 8.0,
+      children: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(null);
+          },
+          child: widget.buildCancelButton?.call(context) ??
+              Text(localizations.cancelButtonLabel),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(DateTime(_year, _month));
+          },
+          child: widget.buildOkButton?.call(context) ??
+              Text(localizations.okButtonLabel),
+        ),
+      ],
     );
   }
 }
