@@ -16,7 +16,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  flutter_localization:
   year_month_picker:
     # When depending on this package from a real application you should use:
     #   year_month_picker: ^x.y.z
