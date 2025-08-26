@@ -3,8 +3,41 @@ import 'package:intl/intl.dart' hide TextDirection;
 
 import 'validations.dart';
 
+/// Displays a dialog allowing the user to pick a year and month.
+///
+/// This function shows a modal dialog with UI for selecting a year and a month.
+/// It supports customization of year/month items, action buttons, helper text,
+/// and the year-month display. Localization, text direction, and callbacks for
+/// selection changes are also supported. The result is returned asynchronously
+/// when the user confirms or cancels the dialog.
+///
+/// Parameters:
+/// - `context` (required): The build context to display the dialog.
+/// - `lastYear` (required): The maximum selectable year.
+/// - `firstYear` (required): The minimum selectable year.
+/// - `barrierDismissible` (default `true`): Whether tapping outside dismisses the dialog.
+/// - `barrierColor` (optional): The color of the modal barrier behind the dialog.
+/// - `barrierLabel` (optional): Accessibility label for the barrier.
+/// - `useRootNavigator` (default `true`): Whether to use the root navigator.
+/// - `routeSettings` (optional): Route settings for the dialog.
+/// - `locale` (optional): Custom locale for the dialog.
+/// - `textDirection` (optional): Text direction (LTR/RTL).
+/// - `anchorPoint` (optional): The anchor point for the dialog position.
+/// - `initialYearMonth` (optional): The initial year and month to display (defaults to now).
+/// - `backgroundColor` (optional): Background color of the dialog.
+/// - `yearItemBuilder` (optional): Custom builder for year items.
+/// - `monthItemBuilder` (optional): Custom builder for month items.
+/// - `okButtonBuilder` (optional): Custom builder for the OK button.
+/// - `cancelButtonBuilder` (optional): Custom builder for the Cancel button.
+/// - `helperTextBuilder` (optional): Custom builder for helper text above the picker.
+/// - `yearMonthTextBuilder` (optional): Custom builder for the year-month display.
+/// - `onYearChanged` (optional): Callback when the year changes.
+/// - `onMonthChanged` (optional): Callback when the month changes.
+///
+/// Returns:
+/// - `Future<DateTime?>`: Resolves to the selected year and month as a `DateTime` if confirmed,
+///   or `null` if the user cancels or dismisses the dialog.
 Future<DateTime?> showYearMonthPickerDialog({
-  // Dialog params
   required BuildContext context,
   bool barrierDismissible = true,
   Color? barrierColor,
@@ -14,19 +47,17 @@ Future<DateTime?> showYearMonthPickerDialog({
   Locale? locale,
   TextDirection? textDirection,
   Offset? anchorPoint,
-
-  // Year month picker params
   required int lastYear,
   required int firstYear,
   DateTime? initialYearMonth,
   Color? backgroundColor,
-  Widget Function(BuildContext context, int year)? buildYearItem,
-  Widget Function(BuildContext context, int month)? buildMonthItem,
-  Widget Function(BuildContext context)? buildOkButton,
-  Widget Function(BuildContext context)? buildCancelButton,
-  Widget Function(BuildContext context)? buildHelperText,
+  Widget Function(BuildContext context, int year)? yearItemBuilder,
+  Widget Function(BuildContext context, int month)? monthItemBuilder,
+  Widget Function(BuildContext context)? okButtonBuilder,
+  Widget Function(BuildContext context)? cancelButtonBuilder,
+  Widget Function(BuildContext context)? helperTextBuilder,
   Widget Function(BuildContext context, int year, int month)?
-      buildYearMonthText,
+      yearMonthTextBuilder,
   void Function(int year)? onYearChanged,
   void Function(int month)? onMonthChanged,
 }) {
@@ -40,12 +71,12 @@ Future<DateTime?> showYearMonthPickerDialog({
     lastYear: lastYear,
     firstYear: firstYear,
     initialYearMonth: initialYearMonth,
-    buildMonthItem: buildMonthItem,
-    buildCancelButton: buildCancelButton,
-    buildOkButton: buildOkButton,
-    buildYearItem: buildYearItem,
-    buildHelperText: buildHelperText,
-    buildYearMonthText: buildYearMonthText,
+    monthItemBuilder: monthItemBuilder,
+    cancelButtonBuilder: cancelButtonBuilder,
+    okButtonBuilder: okButtonBuilder,
+    yearItemBuilder: yearItemBuilder,
+    helperTextBuilder: helperTextBuilder,
+    yearMonthTextBuilder: yearMonthTextBuilder,
     onMonthChanged: onMonthChanged,
     onYearChanged: onYearChanged,
     backgroundColor: backgroundColor,
@@ -82,12 +113,12 @@ class _YearMonthPickerDialog extends StatefulWidget {
   _YearMonthPickerDialog({
     required this.lastYear,
     required this.firstYear,
-    this.buildYearItem,
-    this.buildMonthItem,
-    this.buildOkButton,
-    this.buildCancelButton,
-    this.buildHelperText,
-    this.buildYearMonthText,
+    this.yearItemBuilder,
+    this.monthItemBuilder,
+    this.okButtonBuilder,
+    this.cancelButtonBuilder,
+    this.helperTextBuilder,
+    this.yearMonthTextBuilder,
     this.onYearChanged,
     this.onMonthChanged,
     this.backgroundColor,
@@ -109,13 +140,13 @@ class _YearMonthPickerDialog extends StatefulWidget {
   final int firstYear;
   late final DateTime initialYearMonth;
 
-  final Widget Function(BuildContext context, int year)? buildYearItem;
-  final Widget Function(BuildContext context, int month)? buildMonthItem;
-  final Widget Function(BuildContext context)? buildOkButton;
-  final Widget Function(BuildContext context)? buildCancelButton;
-  final Widget Function(BuildContext context)? buildHelperText;
+  final Widget Function(BuildContext context, int year)? yearItemBuilder;
+  final Widget Function(BuildContext context, int month)? monthItemBuilder;
+  final Widget Function(BuildContext context)? okButtonBuilder;
+  final Widget Function(BuildContext context)? cancelButtonBuilder;
+  final Widget Function(BuildContext context)? helperTextBuilder;
   final Widget Function(BuildContext context, int year, int month)?
-      buildYearMonthText;
+      yearMonthTextBuilder;
 
   final void Function(int year)? onYearChanged;
   final void Function(int month)? onMonthChanged;
@@ -126,10 +157,10 @@ class _YearMonthPickerDialog extends StatefulWidget {
 
 class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   Widget Function(BuildContext, int year) get _buildYearItem =>
-      widget.buildYearItem ?? _defaultBuildYearItem;
+      widget.yearItemBuilder ?? _defaultBuildYearItem;
 
   Widget Function(BuildContext, int month) get _buildMonthItem =>
-      widget.buildMonthItem ?? _defaultBuildMonthItem;
+      widget.monthItemBuilder ?? _defaultBuildMonthItem;
 
   DateTime get _initYearMonth => widget.initialYearMonth;
 
@@ -175,7 +206,8 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              widget.buildHelperText?.call(context) ?? const SizedBox.shrink(),
+              widget.helperTextBuilder?.call(context) ??
+                  const SizedBox.shrink(),
               _buildYearMonthText(),
               const Divider(),
               _buildYearSelector(),
@@ -189,7 +221,7 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   }
 
   Widget _buildYearMonthText() {
-    return widget.buildYearMonthText?.call(context, _year, _month) ??
+    return widget.yearMonthTextBuilder?.call(context, _year, _month) ??
         Text(
           DateFormat.yMMMM(widget.locale?.languageCode)
               .format(DateTime(_year, _month)),
@@ -304,14 +336,24 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
           onPressed: () {
             Navigator.of(context).pop(null);
           },
-          child: widget.buildCancelButton?.call(context) ??
+          style: ButtonStyle(
+            padding: widget.okButtonBuilder != null
+                ? WidgetStateProperty.all(const EdgeInsets.all(0))
+                : null,
+          ),
+          child: widget.cancelButtonBuilder?.call(context) ??
               Text(localizations.cancelButtonLabel),
         ),
         TextButton(
           onPressed: () {
             Navigator.of(context).pop(DateTime(_year, _month));
           },
-          child: widget.buildOkButton?.call(context) ??
+          style: ButtonStyle(
+            padding: widget.okButtonBuilder != null
+                ? WidgetStateProperty.all(const EdgeInsets.all(0))
+                : null,
+          ),
+          child: widget.okButtonBuilder?.call(context) ??
               Text(localizations.okButtonLabel),
         ),
       ],
