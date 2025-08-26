@@ -1,4 +1,7 @@
 # year_month_picker
+[![pub](https://img.shields.io/pub/v/year_month_picker?label=pub&logo=dart)](https://pub.dev/packages/year_month_picker/install)
+[![stars](https://img.shields.io/github/stars/PhiLongDo/year_month_picker?logo=github)](https://github.com/PhiLongDo/year_month_picker)
+[![issues](https://img.shields.io/github/issues/PhiLongDo/year_month_picker?logo=github)](https://github.com/PhiLongDo/year_month_picker/issues) 
 
 A Flutter package that enables users to select a year and month via a dialog or bottom sheet interface.
 
