@@ -44,7 +44,7 @@ final selected = await showYearMonthPickerDialog(
 
 **Dialog Example:**
 
-![Dialog Screenshot](Screenshot/Screenshot_dialog.PNG)
+![Dialog Screenshot](https://github.com/PhiLongDo/year_month_picker/blob/main/Screenshot/Screenshot_dialog.PNG?raw=true)
 
 ### Show Year-Month Picker Bottom Sheet
 
@@ -67,7 +67,7 @@ final selected = await showYearMonthPickerBottomSheet(
 
 **Bottom Sheet Example:**
 
-![Bottom Sheet Screenshot](Screenshot/Screenshot_bottom_sheet.PNG)
+![Bottom Sheet Screenshot](https://github.com/PhiLongDo/year_month_picker/blob/main/Screenshot/Screenshot_bottom_sheet.PNG?raw=true)
 
 ### Customization
 
