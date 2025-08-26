@@ -1,6 +1,6 @@
 name: year_month_picker
 description: "A Flutter package that enables users to select a year and month via a dialog or bottom sheet interface."
-version: 1.0.0
+version: 1.0.1
 repository: https://github.com/PhiLongDo/year_month_picker
 issue_tracker: https://github.com/PhiLongDo/year_month_picker/issues
 
