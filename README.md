@@ -1,15 +1,88 @@
 # year_month_picker
 
-A new Flutter project.
+A Flutter package that enables users to select a year and month via a dialog or bottom sheet interface.
 
-## Getting Started
+### Installation
 
-This project is a starting point for a Flutter
-[plug-in package](https://flutter.dev/to/develop-plugins),
-a specialized package that includes platform-specific implementation code for
-Android and/or iOS.
+Add the following dependency to your `pubspec.yaml` file:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```yaml
+dependencies:
+  year_month_picker: ^1.0.0
+```
 
+Then, run `flutter pub get` to install the package.
+
+### Importing
+
+Import the package in your Dart code where you want to use it:
+
+```dart
+import 'package:year_month_picker/year_month_picker.dart';
+```
+
+## Usage
+
+### Show Year-Month Picker Dialog
+
+Use `showYearMonthPickerDialog` to display a dialog for selecting year and month:
+
+```dart
+import 'package:year_month_picker/year_month_picker.dart';
+
+// ...existing code...
+
+final selected = await showYearMonthPickerDialog(
+  context: context,
+  firstYear: 2000,
+  lastYear: 2100,
+  initialYearMonth: DateTime.now(),
+);
+
+// `selected` is a DateTime (year & month) or null if cancelled
+```
+
+**Dialog Example:**
+
+![Dialog Screenshot](Screenshot/Screenshot_dialog.PNG)
+
+### Show Year-Month Picker Bottom Sheet
+
+Use `showYearMonthPickerBottomSheet` to display a bottom sheet picker:
+
+```dart
+import 'package:year_month_picker/year_month_picker.dart';
+
+// ...existing code...
+
+final selected = await showYearMonthPickerBottomSheet(
+  context: context,
+  firstYear: 2000,
+  lastYear: 2100,
+  initialYearMonth: DateTime.now(),
+);
+
+// `selected` is a DateTime (year & month) or null if cancelled
+```
+
+**Bottom Sheet Example:**
+
+![Bottom Sheet Screenshot](Screenshot/Screenshot_bottom_sheet.PNG)
+
+### Customization
+
+Both functions support various customization options:
+- `yearItemBuilder`, `monthItemBuilder`: Customize year/month item widgets.
+- `okButtonBuilder`, `cancelButtonBuilder`: Customize action buttons.
+- `locale`, `textDirection`: Localization and text direction support.
+- `onYearChanged`, `onMonthChanged`: Callbacks for selection changes.
+
+See the API documentation for all available parameters.
+
+---
+
+## ☕ Buy Me a Coffee
+
+If you find this package useful, you can support me here:
+
+[![Buy Me A Coffee](https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&slug=dplong&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff)](https://buymeacoffee.com/dplong)
