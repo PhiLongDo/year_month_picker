@@ -3,6 +3,37 @@ import 'package:flutter/material.dart';
 
 import 'validations.dart';
 
+/// Displays a bottom sheet allowing the user to pick a year and month.
+///
+/// This function shows a modal bottom sheet with two vertical carousels for selecting
+/// a year and a month. It supports UI customization, localization, and callbacks for
+/// selection changes. The result is returned asynchronously when the user confirms or
+/// cancels the picker.
+///
+/// Parameters:
+/// - `context` (required): The build context to display the bottom sheet.
+/// - `lastYear` (required): The maximum selectable year.
+/// - `firstYear` (required): The minimum selectable year.
+/// - `barrierColor` (optional): The color of the modal barrier behind the sheet.
+/// - `barrierLabel` (optional): Accessibility label for the barrier.
+/// - `useRootNavigator` (default `true`): Whether to use the root navigator.
+/// - `routeSettings` (optional): Route settings for the bottom sheet.
+/// - `locale` (optional): Custom locale for the picker.
+/// - `textDirection` (optional): Text direction (LTR/RTL).
+/// - `anchorPoint` (optional): The anchor point for the bottom sheet position.
+/// - `initialYearMonth` (optional): The initial year and month to display (defaults to now).
+/// - `backgroundColor` (optional): Background color of the bottom sheet.
+/// - `yearItemBuilder` (optional): Custom builder for year items.
+/// - `monthItemBuilder` (optional): Custom builder for month items.
+/// - `okButtonBuilder` (optional): Custom builder for the OK button.
+/// - `cancelButtonBuilder` (optional): Custom builder for the Cancel button.
+/// - `onYearChanged` (optional): Callback when the year changes.
+/// - `onMonthChanged` (optional): Callback when the month changes.
+/// - `showDragHandle` (optional): Whether to show a drag handle on the sheet.
+///
+/// Returns:
+/// - `Future<DateTime?>`: Resolves to the selected year and month as a `DateTime` if confirmed,
+///   or `null` if the user cancels or dismisses the sheet.
 Future<DateTime?> showYearMonthPickerBottomSheet({
   required BuildContext context,
   Color? barrierColor,
@@ -11,14 +42,15 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   RouteSettings? routeSettings,
   Locale? locale,
   TextDirection? textDirection,
+  Offset? anchorPoint,
   required int lastYear,
   required int firstYear,
   DateTime? initialYearMonth,
   Color? backgroundColor,
-  Widget Function(BuildContext context, int year)? buildYearItem,
-  Widget Function(BuildContext context, int month)? buildMonthItem,
-  Widget Function(BuildContext context)? buildOkButton,
-  Widget Function(BuildContext context)? buildCancelButton,
+  Widget Function(BuildContext context, int year)? yearItemBuilder,
+  Widget Function(BuildContext context, int month)? monthItemBuilder,
+  Widget Function(BuildContext context)? okButtonBuilder,
+  Widget Function(BuildContext context)? cancelButtonBuilder,
   void Function(int year)? onYearChanged,
   void Function(int month)? onMonthChanged,
   bool? showDragHandle,
@@ -33,10 +65,10 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
     lastYear: lastYear,
     firstYear: firstYear,
     initialYearMonth: initialYearMonth,
-    buildMonthItem: buildMonthItem,
-    buildCancelButton: buildCancelButton,
-    buildOkButton: buildOkButton,
-    buildYearItem: buildYearItem,
+    monthItemBuilder: monthItemBuilder,
+    cancelButtonBuilder: cancelButtonBuilder,
+    okButtonBuilder: okButtonBuilder,
+    yearItemBuilder: yearItemBuilder,
     onMonthChanged: onMonthChanged,
     onYearChanged: onYearChanged,
   );
@@ -61,6 +93,7 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
     barrierLabel: barrierLabel,
     useRootNavigator: useRootNavigator,
     routeSettings: routeSettings,
+    anchorPoint: anchorPoint,
     builder: (BuildContext context) {
       return bottomSheet;
     },
@@ -71,10 +104,10 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
   _YearMonthPickerBottomSheet({
     required this.lastYear,
     required this.firstYear,
-    this.buildYearItem,
-    this.buildMonthItem,
-    this.buildOkButton,
-    this.buildCancelButton,
+    this.yearItemBuilder,
+    this.monthItemBuilder,
+    this.okButtonBuilder,
+    this.cancelButtonBuilder,
     this.onYearChanged,
     this.onMonthChanged,
     DateTime? initialYearMonth,
@@ -91,10 +124,10 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
   final int firstYear;
   late final DateTime initialYearMonth;
 
-  final Widget Function(BuildContext context, int year)? buildYearItem;
-  final Widget Function(BuildContext context, int month)? buildMonthItem;
-  final Widget Function(BuildContext context)? buildOkButton;
-  final Widget Function(BuildContext context)? buildCancelButton;
+  final Widget Function(BuildContext context, int year)? yearItemBuilder;
+  final Widget Function(BuildContext context, int month)? monthItemBuilder;
+  final Widget Function(BuildContext context)? okButtonBuilder;
+  final Widget Function(BuildContext context)? cancelButtonBuilder;
 
   final void Function(int year)? onYearChanged;
   final void Function(int month)? onMonthChanged;
@@ -107,10 +140,10 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
 class _YearMonthPickerBottomSheetState
     extends State<_YearMonthPickerBottomSheet> {
   Widget Function(BuildContext, int year) get _buildYearItem =>
-      widget.buildYearItem ?? _defaultBuildItem;
+      widget.yearItemBuilder ?? _defaultBuildItem;
 
   Widget Function(BuildContext, int month) get _buildMonthItem =>
-      widget.buildMonthItem ?? _defaultBuildItem;
+      widget.monthItemBuilder ?? _defaultBuildItem;
 
   DateTime get _initYearMonth => widget.initialYearMonth;
 
@@ -160,14 +193,24 @@ class _YearMonthPickerBottomSheetState
                   onPressed: () {
                     Navigator.of(context).pop(null);
                   },
-                  child: widget.buildCancelButton?.call(context) ??
+                  style: ButtonStyle(
+                    padding: widget.okButtonBuilder != null
+                        ? WidgetStateProperty.all(const EdgeInsets.all(0))
+                        : null,
+                  ),
+                  child: widget.cancelButtonBuilder?.call(context) ??
                       Text(localizations.cancelButtonLabel),
                 ),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop(DateTime(_year, _month));
                   },
-                  child: widget.buildOkButton?.call(context) ??
+                  style: ButtonStyle(
+                    padding: widget.okButtonBuilder != null
+                        ? WidgetStateProperty.all(const EdgeInsets.all(0))
+                        : null,
+                  ),
+                  child: widget.okButtonBuilder?.call(context) ??
                       Text(localizations.okButtonLabel),
                 )
               ],

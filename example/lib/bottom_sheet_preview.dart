@@ -41,7 +41,7 @@ class BottomSheetPreview extends StatelessWidget {
               initialYearMonth: initYearMonth,
               backgroundColor: Colors.white,
               locale: const Locale("vi"),
-              buildMonthItem: (context, month) {
+              monthItemBuilder: (context, month) {
                 return Container(
                   alignment: Alignment.center,
                   margin: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -60,7 +60,7 @@ class BottomSheetPreview extends StatelessWidget {
                   ),
                 );
               },
-              buildYearItem: (context, year) {
+              yearItemBuilder: (context, year) {
                 return Container(
                   alignment: Alignment.center,
                   margin: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -79,7 +79,7 @@ class BottomSheetPreview extends StatelessWidget {
                   ),
                 );
               },
-              buildOkButton: (context) {
+              okButtonBuilder: (context) {
                 return Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
@@ -98,7 +98,7 @@ class BottomSheetPreview extends StatelessWidget {
                   ),
                 );
               },
-              buildCancelButton: (context) {
+              cancelButtonBuilder: (context) {
                 return Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(

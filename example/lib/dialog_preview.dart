@@ -40,7 +40,7 @@ class DialogPreview extends StatelessWidget {
               firstYear: 2000,
               initialYearMonth: initYearMonth,
               backgroundColor: Colors.white,
-              buildHelperText: (context) {
+              helperTextBuilder: (context) {
                 return const Text(
                   'Chọn tháng và năm',
                   style: TextStyle(
@@ -49,7 +49,7 @@ class DialogPreview extends StatelessWidget {
                 );
               },
               locale: const Locale("vi"),
-              buildYearMonthText: (context, year, month) {
+              yearMonthTextBuilder: (context, year, month) {
                 return Text(
                   DateFormat.yMMMM("vi").format(DateTime(year, month)),
                   style: const TextStyle(
@@ -59,7 +59,7 @@ class DialogPreview extends StatelessWidget {
                   ),
                 );
               },
-              buildMonthItem: (context, month) {
+              monthItemBuilder: (context, month) {
                 return Container(
                   alignment: Alignment.center,
                   child: Text(
@@ -71,7 +71,7 @@ class DialogPreview extends StatelessWidget {
                   ),
                 );
               },
-              buildYearItem: (context, year) {
+              yearItemBuilder: (context, year) {
                 return Container(
                   alignment: Alignment.center,
                   margin: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -85,7 +85,7 @@ class DialogPreview extends StatelessWidget {
                   ),
                 );
               },
-              buildOkButton: (context) {
+              okButtonBuilder: (context) {
                 return Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
@@ -102,7 +102,7 @@ class DialogPreview extends StatelessWidget {
                   ),
                 );
               },
-              buildCancelButton: (context) {
+              cancelButtonBuilder: (context) {
                 return Container(
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
