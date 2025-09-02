@@ -5,6 +5,12 @@
 
 A Flutter package that enables users to select a year and month via a dialog or bottom sheet interface.
 
+---
+
+🚀 **Web Demo:** [https://philongdo.github.io/#/year_month_picker](https://philongdo.github.io/#/year_month_picker)
+
+---
+
 ### Installation
 
 Add the following dependency to your `pubspec.yaml` file:
