@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class Dropdown<T> extends StatefulWidget {
   Dropdown({
     required this.items,
-    required this.itemBuilder,
-    required this.selectedItemBuilder,
+    this.itemBuilder,
+    this.selectedItemBuilder,
     this.value,
     this.onChanged,
-    this.menuMaxHeight,
+    double? menuMaxHeight,
     this.itemHeight = kMinInteractiveDimension,
     super.key,
   }) {
@@ -16,14 +16,16 @@ class Dropdown<T> extends StatefulWidget {
       value == null || items.contains(value!),
       'If provided, the value must be one of the items.',
     );
+
+    this.menuMaxHeight = menuMaxHeight ?? itemHeight * 5;
   }
 
   final T? value;
   final List<T> items;
-  final Widget Function(BuildContext context, int index) itemBuilder;
-  final Widget Function(BuildContext) selectedItemBuilder;
+  final Widget Function(BuildContext context, int index)? itemBuilder;
+  final Widget Function(BuildContext)? selectedItemBuilder;
   final ValueChanged<T?>? onChanged;
-  final double? menuMaxHeight;
+  late final double? menuMaxHeight;
   final double itemHeight;
 
   @override
@@ -34,6 +36,27 @@ class _DropdownState<T> extends State<Dropdown<T>> {
   OverlayEntry? overlayEntry;
   int? selectedIndex;
   GlobalKey globalKey = GlobalKey();
+
+  Widget Function(BuildContext, int index) get itemBuilder =>
+      widget.itemBuilder ?? defaultItemBuilder;
+
+  Widget Function(BuildContext) get selectedItemBuilder =>
+      widget.selectedItemBuilder ?? defaultSelectedItemBuilder;
+
+  Widget defaultItemBuilder(BuildContext context, int index) {
+    return Text(
+      '${widget.items[index]}',
+      style: Theme.of(context).dropdownMenuTheme.textStyle,
+    );
+  }
+
+  Widget defaultSelectedItemBuilder(BuildContext context) {
+    assert(selectedIndex != null);
+    return Text(
+      '${widget.items[selectedIndex!]}',
+      style: Theme.of(context).dropdownMenuTheme.textStyle,
+    );
+  }
 
   @override
   void initState() {
@@ -56,6 +79,8 @@ class _DropdownState<T> extends State<Dropdown<T>> {
       initialScrollOffset: (selectedIndex ?? 0) * widget.itemHeight,
     );
 
+    const paddingItem = 8.0;
+
     overlayEntry = OverlayEntry(
       builder: (BuildContext context) {
         return Stack(
@@ -73,39 +98,47 @@ class _DropdownState<T> extends State<Dropdown<T>> {
               ),
             ),
             Positioned(
-              left: position.dx,
+              left: position.dx - paddingItem,
               top: position.dy,
-              width: size.width,
-              height: size.height *
-                  (widget.items.length > 5 ? 5 : widget.items.length),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                controller: scrollController,
-                itemBuilder: (BuildContext context, int index) {
-                  return Material(
-                    color: Colors.transparent,
-                    child: Center(
-                      child: InkWell(
-                        onTap: () {
-                          selectedIndex = index;
-                          widget.onChanged?.call(widget.items[index]);
-                          // Remove the overlay after selection.
-                          removeHighlightOverlay();
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
+              width: size.width + (paddingItem * 2),
+              height: widget.menuMaxHeight,
+              child: DecoratedBox(
+                decoration: BoxDecoration(boxShadow: kElevationToShadow[4]),
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  interactive: true,
+                  controller: scrollController,
+                  child: ListView.builder(
+                    padding: EdgeInsets.zero,
+                    controller: scrollController,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Material(
+                        color: index == selectedIndex
+                            ? Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                            : Theme.of(context).colorScheme.surface,
+                        child: Center(
+                          child: InkWell(
+                            onTap: () {
+                              selectedIndex = index;
+                              widget.onChanged?.call(widget.items[index]);
+                              // Remove the overlay after selection.
+                              removeHighlightOverlay();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(paddingItem),
+                              height: widget.itemHeight,
+                              alignment: Alignment.center,
+                              child: itemBuilder(context, index),
+                            ),
                           ),
-                          height: widget.itemHeight,
-                          child: index == selectedIndex
-                              ? widget.selectedItemBuilder(context)
-                              : widget.itemBuilder(context, index),
                         ),
-                      ),
-                    ),
-                  );
-                },
-                itemCount: widget.items.length,
+                      );
+                    },
+                    itemCount: widget.items.length,
+                  ),
+                ),
               ),
             ),
           ],
@@ -135,6 +168,7 @@ class _DropdownState<T> extends State<Dropdown<T>> {
   Widget build(BuildContext context) {
     Theme.of(context).dropdownMenuTheme.textStyle;
     return InkWell(
+      key: globalKey,
       onTap: () {
         if (globalKey.currentContext != null) {
           final RenderBox renderBox =
@@ -146,10 +180,15 @@ class _DropdownState<T> extends State<Dropdown<T>> {
       },
       child: SizedBox(
         height: widget.itemHeight,
-        child: Text(
-          key: globalKey,
-          widget.value == null ? '' : widget.value.toString(),
-          style: Theme.of(context).dropdownMenuTheme.textStyle,
+        child: Align(
+          alignment: Alignment.center,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            child: selectedItemBuilder(context),
+          ),
         ),
       ),
     );

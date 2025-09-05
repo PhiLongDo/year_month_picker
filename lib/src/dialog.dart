@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+import 'components/dropdown.dart';
 import 'validations.dart';
 
 /// Displays a dialog allowing the user to pick a year and month.
@@ -180,7 +181,8 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
         '$number',
         style: TextStyle(
           color: Theme.of(context).colorScheme.onSurface,
-          fontSize: 18,
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
         ),
       );
 
@@ -230,6 +232,10 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   }
 
   Widget _buildYearSelector() {
+    final listYears = List<int>.generate(
+      widget.lastYear - widget.firstYear + 1,
+      (index) => widget.firstYear + index,
+    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -244,19 +250,19 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
               : null,
           icon: const Icon(Icons.chevron_left),
         ),
-        DropdownButton<int>(
+        Dropdown(
           value: _year,
-          icon: const SizedBox.shrink(),
-          items: List<DropdownMenuItem<int>>.generate(
-            widget.lastYear - widget.firstYear + 1,
-            (index) {
-              final year = widget.firstYear + index;
-              return DropdownMenuItem<int>(
-                value: year,
-                child: _buildYearItem(context, year),
-              );
-            },
-          ),
+          items: listYears,
+          itemBuilder: (BuildContext context, int index) {
+            return _buildYearItem(context, listYears[index]);
+          },
+          selectedItemBuilder: (BuildContext context) {
+            return DecoratedBox(
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(width: 0.2)),
+                ),
+                child: _buildYearItem(context, _year));
+          },
           onChanged: (int? newYear) {
             if (newYear != null) {
               setState(() {
