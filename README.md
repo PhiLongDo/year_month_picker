@@ -17,7 +17,7 @@ Add the following dependency to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  year_month_picker: ^1.0.1
+  year_month_picker: ^1.0.2
 ```
 
 Then, run `flutter pub get` to install the package.
