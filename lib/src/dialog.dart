@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
 import 'components/dropdown.dart';
+import 'components/year_month_text.dart';
 import 'validations.dart';
 
 /// Displays a dialog allowing the user to pick a year and month.
@@ -187,8 +188,10 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
       );
 
   Widget _defaultBuildMonthItem(BuildContext context, int number) {
+    final deviceWidth = MediaQuery.of(context).size.width;
+    final pattern = deviceWidth > 412 ? 'MMMM' : 'MMM';
     return Text(
-      DateFormat.MMMM(widget.locale?.languageCode)
+      DateFormat(pattern, widget.locale?.languageCode)
           .format(DateTime(2025, number)),
       style: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
@@ -214,6 +217,7 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
               const Divider(),
               _buildYearSelector(),
               _buildMonthSelector(),
+              const SizedBox(height: 6.0),
               _buildActions(context),
             ],
           ),
@@ -224,11 +228,7 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
 
   Widget _buildYearMonthText() {
     return widget.yearMonthTextBuilder?.call(context, _year, _month) ??
-        Text(
-          DateFormat.yMMMM(widget.locale?.languageCode)
-              .format(DateTime(_year, _month)),
-          style: Theme.of(context).textTheme.headlineSmall,
-        );
+        YearMonthText(locale: widget.locale, year: _year, month: _month);
   }
 
   Widget _buildYearSelector() {
@@ -295,21 +295,24 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   }
 
   Widget _buildMonthRow(int row) {
+    final borderRadius = BorderRadius.circular(8.0);
+    final deviceWidth = MediaQuery.of(context).size.width;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.min,
       children: List<Widget>.generate(3, (index) {
         final month = row * 3 + index + 1;
-        return GestureDetector(
+        return InkWell(
           onTap: () {
             setState(() {
               _month = month;
               widget.onMonthChanged?.call(_month);
             });
           },
+          borderRadius: borderRadius,
           child: Container(
-            constraints: const BoxConstraints(
-              minWidth: 100,
+            constraints: BoxConstraints(
+              minWidth: deviceWidth > 412 ? 100 : 80,
               minHeight: 60,
             ),
             padding: const EdgeInsets.symmetric(
@@ -320,7 +323,7 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
               color: _month == month
                   ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
                   : null,
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: borderRadius,
             ),
             alignment: Alignment.center,
             child: _buildMonthItem(context, month),
