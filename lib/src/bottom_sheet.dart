@@ -100,7 +100,14 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   );
 }
 
+/// A private [StatefulWidget] that represents the content of the year/month picker bottom sheet.
+///
+/// This widget is responsible for displaying the UI for year and month selection using
+/// carousels, handling user interactions, and managing the internal state of the selected date.
 class _YearMonthPickerBottomSheet extends StatefulWidget {
+  /// Creates an instance of [_YearMonthPickerBottomSheet].
+  ///
+  /// Parameters are typically passed from [showYearMonthPickerBottomSheet].
   _YearMonthPickerBottomSheet({
     required this.lastYear,
     required this.firstYear,
@@ -120,16 +127,32 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
     this.initialYearMonth = initialYearMonth ?? DateTime.now();
   }
 
+  /// The maximum selectable year.
   final int lastYear;
+
+  /// The minimum selectable year.
   final int firstYear;
+
+  /// The initially selected year and month.
+  /// Defaults to the current date and time if not specified.
   late final DateTime initialYearMonth;
 
+  /// Optional custom builder for year items in the carousel.
   final Widget Function(BuildContext context, int year)? yearItemBuilder;
+
+  /// Optional custom builder for month items in the carousel.
   final Widget Function(BuildContext context, int month)? monthItemBuilder;
+
+  /// Optional custom builder for the OK button.
   final Widget Function(BuildContext context)? okButtonBuilder;
+
+  /// Optional custom builder for the Cancel button.
   final Widget Function(BuildContext context)? cancelButtonBuilder;
 
+  /// Callback invoked when the selected year changes.
   final void Function(int year)? onYearChanged;
+
+  /// Callback invoked when the selected month changes.
   final void Function(int month)? onMonthChanged;
 
   @override
@@ -137,19 +160,34 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
       _YearMonthPickerBottomSheetState();
 }
 
+/// The state for the [_YearMonthPickerBottomSheet].
+///
+/// Manages the currently selected year and month, and builds the UI
+/// for the bottom sheet content. It handles user interactions from the carousels
+/// and buttons, updating the display and invoking callbacks accordingly.
 class _YearMonthPickerBottomSheetState
     extends State<_YearMonthPickerBottomSheet> {
+  /// Returns the effective year item builder.
+  ///
+  /// Defaults to [_defaultBuildItem] if [widget.yearItemBuilder] is null.
   Widget Function(BuildContext, int year) get _buildYearItem =>
       widget.yearItemBuilder ?? _defaultBuildItem;
 
+  /// Returns the effective month item builder.
+  ///
+  /// Defaults to [_defaultBuildItem] if [widget.monthItemBuilder] is null.
   Widget Function(BuildContext, int month) get _buildMonthItem =>
       widget.monthItemBuilder ?? _defaultBuildItem;
 
+  /// Gets the initial year and month from the widget.
   DateTime get _initYearMonth => widget.initialYearMonth;
 
   late int _year;
   late int _month;
 
+  /// Builds the default widget for a carousel item (year or month).
+  ///
+  /// Displays the [number] centered in a decorated container.
   Widget _defaultBuildItem(BuildContext context, int number) => Container(
         alignment: Alignment.center,
         margin: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -170,6 +208,7 @@ class _YearMonthPickerBottomSheetState
   void initState() {
     _year = _initYearMonth.year;
     _month = _initYearMonth.month;
+    // Notify listeners about the initial state.
     widget.onYearChanged?.call(_year);
     widget.onMonthChanged?.call(_month);
     super.initState();

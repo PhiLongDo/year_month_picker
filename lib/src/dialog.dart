@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 
+import 'components/dropdown.dart';
+import 'components/year_month_text.dart';
 import 'validations.dart';
 
 /// Displays a dialog allowing the user to pick a year and month.
@@ -109,7 +111,14 @@ Future<DateTime?> showYearMonthPickerDialog({
   );
 }
 
+/// A private [StatefulWidget] that represents the content of the year/month picker dialog.
+///
+/// This widget is responsible for displaying the UI for year and month selection,
+/// handling user interactions, and managing the internal state of the selected date.
 class _YearMonthPickerDialog extends StatefulWidget {
+  /// Creates an instance of [_YearMonthPickerDialog].
+  ///
+  /// Parameters are typically passed from [showYearMonthPickerDialog].
   _YearMonthPickerDialog({
     required this.lastYear,
     required this.firstYear,
@@ -133,35 +142,70 @@ class _YearMonthPickerDialog extends StatefulWidget {
     this.initialYearMonth = initialYearMonth ?? DateTime.now();
   }
 
+  /// The background color of the dialog.
   final Color? backgroundColor;
+
+  /// The locale used for formatting text within the dialog.
   final Locale? locale;
 
+  /// The maximum selectable year.
   final int lastYear;
+
+  /// The minimum selectable year.
   final int firstYear;
+
+  /// The initially selected year and month.
+  /// Defaults to the current date and time if not specified in the constructor.
   late final DateTime initialYearMonth;
 
+  /// Optional custom builder for year items in the dropdown.
   final Widget Function(BuildContext context, int year)? yearItemBuilder;
+
+  /// Optional custom builder for month items in the grid.
   final Widget Function(BuildContext context, int month)? monthItemBuilder;
+
+  /// Optional custom builder for the OK button.
   final Widget Function(BuildContext context)? okButtonBuilder;
+
+  /// Optional custom builder for the Cancel button.
   final Widget Function(BuildContext context)? cancelButtonBuilder;
+
+  /// Optional custom builder for the helper text displayed above the picker.
   final Widget Function(BuildContext context)? helperTextBuilder;
+
+  /// Optional custom builder for the year-month display text.
   final Widget Function(BuildContext context, int year, int month)?
       yearMonthTextBuilder;
 
+  /// Callback invoked when the selected year changes.
   final void Function(int year)? onYearChanged;
+
+  /// Callback invoked when the selected month changes.
   final void Function(int month)? onMonthChanged;
 
   @override
   State<_YearMonthPickerDialog> createState() => _YearMonthPickerDialogState();
 }
 
+/// The state for the [_YearMonthPickerDialog].
+///
+/// Manages the currently selected year and month, and builds the UI
+/// for the dialog content. It handles user interactions for selecting
+/// a year and month, and updates the display accordingly.
 class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
+  /// Returns the effective year item builder.
+  ///
+  /// Defaults to [_defaultBuildYearItem] if [widget.yearItemBuilder] is null.
   Widget Function(BuildContext, int year) get _buildYearItem =>
       widget.yearItemBuilder ?? _defaultBuildYearItem;
 
+  /// Returns the effective month item builder.
+  ///
+  /// Defaults to [_defaultBuildMonthItem] if [widget.monthItemBuilder] is null.
   Widget Function(BuildContext, int month) get _buildMonthItem =>
       widget.monthItemBuilder ?? _defaultBuildMonthItem;
 
+  /// Gets the initial year and month from the widget.
   DateTime get _initYearMonth => widget.initialYearMonth;
 
   late int _year;
@@ -171,22 +215,30 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   void initState() {
     _year = _initYearMonth.year;
     _month = _initYearMonth.month;
+    // Notify listeners about the initial state.
     widget.onYearChanged?.call(_year);
     widget.onMonthChanged?.call(_month);
     super.initState();
   }
 
+  /// Builds the default widget for a year item, displaying the year number.
   Widget _defaultBuildYearItem(BuildContext context, int number) => Text(
         '$number',
         style: TextStyle(
           color: Theme.of(context).colorScheme.onSurface,
-          fontSize: 18,
+          fontSize: 20,
+          fontWeight: FontWeight.w500,
         ),
       );
 
+  /// Builds the default widget for a month item, displaying the month name.
+  ///
+  /// The month format ('MMMM' or 'MMM') depends on the device width.
   Widget _defaultBuildMonthItem(BuildContext context, int number) {
+    final deviceWidth = MediaQuery.of(context).size.width;
+    final pattern = deviceWidth > 412 ? 'MMMM' : 'MMM';
     return Text(
-      DateFormat.MMMM(widget.locale?.languageCode)
+      DateFormat(pattern, widget.locale?.languageCode)
           .format(DateTime(2025, number)),
       style: TextStyle(
         color: Theme.of(context).colorScheme.onSurface,
@@ -212,6 +264,7 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
               const Divider(),
               _buildYearSelector(),
               _buildMonthSelector(),
+              const SizedBox(height: 6.0),
               _buildActions(context),
             ],
           ),
@@ -220,16 +273,22 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
     );
   }
 
+  /// Builds the widget that displays the currently selected year and month.
+  ///
+  /// Uses [widget.yearMonthTextBuilder] if provided, otherwise defaults to [YearMonthText].
   Widget _buildYearMonthText() {
     return widget.yearMonthTextBuilder?.call(context, _year, _month) ??
-        Text(
-          DateFormat.yMMMM(widget.locale?.languageCode)
-              .format(DateTime(_year, _month)),
-          style: Theme.of(context).textTheme.headlineSmall,
-        );
+        YearMonthText(locale: widget.locale, year: _year, month: _month);
   }
 
+  /// Builds the year selector UI.
+  ///
+  /// Includes increment/decrement buttons and a dropdown for year selection.
   Widget _buildYearSelector() {
+    final listYears = List<int>.generate(
+      widget.lastYear - widget.firstYear + 1,
+      (index) => widget.firstYear + index,
+    );
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -244,19 +303,19 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
               : null,
           icon: const Icon(Icons.chevron_left),
         ),
-        DropdownButton<int>(
+        Dropdown(
           value: _year,
-          icon: const SizedBox.shrink(),
-          items: List<DropdownMenuItem<int>>.generate(
-            widget.lastYear - widget.firstYear + 1,
-            (index) {
-              final year = widget.firstYear + index;
-              return DropdownMenuItem<int>(
-                value: year,
-                child: _buildYearItem(context, year),
-              );
-            },
-          ),
+          items: listYears,
+          itemBuilder: (BuildContext context, int index) {
+            return _buildYearItem(context, listYears[index]);
+          },
+          selectedItemBuilder: (BuildContext context) {
+            return DecoratedBox(
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(width: 0.2)),
+                ),
+                child: _buildYearItem(context, _year));
+          },
           onChanged: (int? newYear) {
             if (newYear != null) {
               setState(() {
@@ -281,6 +340,9 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
     );
   }
 
+  /// Builds the month selector UI.
+  ///
+  /// Displays months in a grid format.
   Widget _buildMonthSelector() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -288,22 +350,29 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
     );
   }
 
+  /// Builds a single row of month buttons for the month selector grid.
+  ///
+  /// Each row typically contains 3 months.
+  /// The [row] parameter is the 0-indexed row number.
   Widget _buildMonthRow(int row) {
+    final borderRadius = BorderRadius.circular(8.0);
+    final deviceWidth = MediaQuery.of(context).size.width;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.min,
       children: List<Widget>.generate(3, (index) {
         final month = row * 3 + index + 1;
-        return GestureDetector(
+        return InkWell(
           onTap: () {
             setState(() {
               _month = month;
               widget.onMonthChanged?.call(_month);
             });
           },
+          borderRadius: borderRadius,
           child: Container(
-            constraints: const BoxConstraints(
-              minWidth: 100,
+            constraints: BoxConstraints(
+              minWidth: deviceWidth > 412 ? 100 : 80,
               minHeight: 60,
             ),
             padding: const EdgeInsets.symmetric(
@@ -314,7 +383,7 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
               color: _month == month
                   ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.2)
                   : null,
-              borderRadius: BorderRadius.circular(8.0),
+              borderRadius: borderRadius,
             ),
             alignment: Alignment.center,
             child: _buildMonthItem(context, month),
@@ -324,6 +393,10 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
     );
   }
 
+  /// Builds the action buttons (e.g., "OK", "Cancel") for the dialog.
+  ///
+  /// Uses [widget.okButtonBuilder] and [widget.cancelButtonBuilder] if provided,
+  /// otherwise defaults to standard [TextButton]s with localized labels from [MaterialLocalizations].
   Widget _buildActions(BuildContext context) {
     final MaterialLocalizations localizations =
         MaterialLocalizations.of(context);
