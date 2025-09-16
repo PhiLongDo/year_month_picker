@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 
+/// A customizable dropdown widget.
+///
+/// Displays a list of items and allows the user to select one.
 class Dropdown<T> extends StatefulWidget {
+  /// Creates a dropdown widget.
+  ///
+  /// The [items] list must not be empty.
+  /// If [value] is provided, it must be one of the [items].
   Dropdown({
     required this.items,
     this.itemBuilder,
@@ -20,29 +27,60 @@ class Dropdown<T> extends StatefulWidget {
     this.menuMaxHeight = menuMaxHeight ?? itemHeight * 5;
   }
 
+  /// The currently selected value.
+  ///
+  /// If null, no item is initially selected.
   final T? value;
+
+  /// The list of items to display in the dropdown.
   final List<T> items;
+
+  /// A builder function for the items in the dropdown list.
+  ///
+  /// If null, a default item builder is used which displays the string
+  /// representation of each item.
   final Widget Function(BuildContext context, int index)? itemBuilder;
+
+  /// A builder function for the selected item displayed in the dropdown button.
+  ///
+  /// If null, a default selected item builder is used which displays the string
+  /// representation of the selected item.
   final Widget Function(BuildContext)? selectedItemBuilder;
+
+  /// Called when the user selects an item from the dropdown.
   final ValueChanged<T?>? onChanged;
+
+  /// The maximum height of the dropdown menu.
   late final double? menuMaxHeight;
+
+  /// The height of each item in the dropdown menu.
   final double itemHeight;
 
   @override
   State<Dropdown<T>> createState() => _DropdownState<T>();
 }
 
+/// The state for the [Dropdown] widget.
 class _DropdownState<T> extends State<Dropdown<T>> {
   OverlayEntry? overlayEntry;
   int? selectedIndex;
   GlobalKey globalKey = GlobalKey();
 
+  /// The item builder for the dropdown list.
+  ///
+  /// Defaults to [defaultItemBuilder] if not provided in the widget.
   Widget Function(BuildContext, int index) get itemBuilder =>
       widget.itemBuilder ?? defaultItemBuilder;
 
+  /// The selected item builder for the dropdown button.
+  ///
+  /// Defaults to [defaultSelectedItemBuilder] if not provided in the widget.
   Widget Function(BuildContext) get selectedItemBuilder =>
       widget.selectedItemBuilder ?? defaultSelectedItemBuilder;
 
+  /// The default item builder for the dropdown list.
+  ///
+  /// Displays the string representation of each item.
   Widget defaultItemBuilder(BuildContext context, int index) {
     return Text(
       '${widget.items[index]}',
@@ -50,6 +88,9 @@ class _DropdownState<T> extends State<Dropdown<T>> {
     );
   }
 
+  /// The default selected item builder for the dropdown button.
+  ///
+  /// Displays the string representation of the selected item.
   Widget defaultSelectedItemBuilder(BuildContext context) {
     assert(selectedIndex != null);
     return Text(
@@ -66,6 +107,10 @@ class _DropdownState<T> extends State<Dropdown<T>> {
     super.initState();
   }
 
+  /// Creates and displays the dropdown overlay.
+  ///
+  /// The [position] and [size] parameters determine the placement and
+  /// dimensions of the overlay.
   void createOverlay({
     required Offset position,
     required Size size,
@@ -150,7 +195,7 @@ class _DropdownState<T> extends State<Dropdown<T>> {
     Overlay.of(context, debugRequiredFor: widget).insert(overlayEntry!);
   }
 
-  // Remove the OverlayEntry.
+  /// Removes the dropdown overlay from the screen.
   void removeHighlightOverlay() {
     overlayEntry?.remove();
     overlayEntry?.dispose();
