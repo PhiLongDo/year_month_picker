@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:year_month_picker_example/date_spinner_preview.dart';
 
 import 'bottom_sheet_preview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -43,7 +44,7 @@ class _MyAppState extends State<MyApp> {
             spacing: 24,
             children: [
               yearMonthSelected != null
-                  ? Text(DateFormat.yMMMM().format(yearMonthSelected!))
+                  ? Text(DateFormat.yMd().format(yearMonthSelected!))
                   : const Text('No data'),
               BottomSheetPreview(
                 initYearMonth: yearMonthSelected,
@@ -56,6 +57,14 @@ class _MyAppState extends State<MyApp> {
               DialogPreview(
                 initYearMonth: yearMonthSelected,
                 onYearMonthSelected: (dateTime) {
+                  setState(() {
+                    yearMonthSelected = dateTime;
+                  });
+                },
+              ),
+              DateSpinnerPreview(
+                initDate: yearMonthSelected,
+                onDateSelected: (dateTime) {
                   setState(() {
                     yearMonthSelected = dateTime;
                   });
