@@ -41,6 +41,25 @@ class DateSpinnerPreview extends StatelessWidget {
               initialDate: initDate,
               backgroundColor: Colors.white,
               locale: const Locale("vi"),
+              dayItemBuilder: (context, day) {
+                return Container(
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Colors.redAccent, width: 0.5),
+                    ),
+                  ),
+                  child: Text(
+                    '$day',
+                    style: const TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                    ),
+                  ),
+                );
+              },
               monthItemBuilder: (context, month) {
                 return Container(
                   alignment: Alignment.center,

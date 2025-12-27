@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:year_month_picker/src/utils.dart';
 
 import 'components/dropdown.dart';
 import 'components/year_month_text.dart';
@@ -286,7 +287,7 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   /// Includes increment/decrement buttons and a dropdown for year selection.
   Widget _buildYearSelector() {
     final listYears = List<int>.generate(
-      widget.lastYear - widget.firstYear + 1,
+      Utils.yearsLength(widget.firstYear, widget.lastYear),
       (index) => widget.firstYear + index,
     );
     return Row(

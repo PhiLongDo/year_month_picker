@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:year_month_picker/src/utils.dart';
 
 import 'validations.dart';
 
@@ -347,7 +348,7 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                           },
                         ),
                         items: List.generate(
-                          widget.lastYear - widget.firstYear,
+                          Utils.yearsLength(widget.firstYear, widget.lastYear),
                           (index) {
                             final year = widget.firstYear + index;
                             return _buildYearItem(context, year);

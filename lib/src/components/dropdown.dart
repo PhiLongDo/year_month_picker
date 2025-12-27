@@ -24,7 +24,8 @@ class Dropdown<T> extends StatefulWidget {
       'If provided, the value must be one of the items.',
     );
 
-    this.menuMaxHeight = menuMaxHeight ?? itemHeight * 5;
+    this.menuMaxHeight =
+        menuMaxHeight ?? itemHeight * (items.length > 5 ? 5 : items.length);
   }
 
   /// The currently selected value.
