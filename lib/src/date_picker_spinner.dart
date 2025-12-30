@@ -27,6 +27,7 @@ import 'validations.dart';
 /// - `yearItemBuilder` (optional): Custom builder for year items.
 /// - `monthItemBuilder` (optional): Custom builder for month items.
 /// - `dayItemBuilder` (optional): Custom builder for day items.
+/// - `dateSelectedBuilder` (optional): Custom builder for the selected date.
 /// - `okButtonBuilder` (optional): Custom builder for the OK button.
 /// - `cancelButtonBuilder` (optional): Custom builder for the Cancel button.
 /// - `onYearChanged` (optional): Callback when the year changes.
@@ -53,6 +54,7 @@ Future<DateTime?> showDatePickerSpinner({
   Widget Function(BuildContext context, int year)? yearItemBuilder,
   Widget Function(BuildContext context, int month)? monthItemBuilder,
   Widget Function(BuildContext context, int day)? dayItemBuilder,
+  Widget Function(BuildContext context, DateTime date)? dateSelectedBuilder,
   Widget Function(BuildContext context)? okButtonBuilder,
   Widget Function(BuildContext context)? cancelButtonBuilder,
   void Function(int year)? onYearChanged,
@@ -73,6 +75,7 @@ Future<DateTime?> showDatePickerSpinner({
     dayItemBuilder: dayItemBuilder,
     monthItemBuilder: monthItemBuilder,
     yearItemBuilder: yearItemBuilder,
+    dateSelectedBuilder: dateSelectedBuilder,
     cancelButtonBuilder: cancelButtonBuilder,
     okButtonBuilder: okButtonBuilder,
     onMonthChanged: onMonthChanged,
@@ -123,6 +126,7 @@ class _DatePickerSpinner extends StatefulWidget {
     this.dayItemBuilder,
     this.okButtonBuilder,
     this.cancelButtonBuilder,
+    this.dateSelectedBuilder,
     this.onYearChanged,
     this.onMonthChanged,
     this.onDayChanged,
@@ -154,6 +158,10 @@ class _DatePickerSpinner extends StatefulWidget {
 
   /// Optional custom builder for day items in the carousel.
   final Widget Function(BuildContext context, int day)? dayItemBuilder;
+
+  /// Optional custom builder for the selected date.
+  final Widget Function(BuildContext context, DateTime date)?
+      dateSelectedBuilder;
 
   /// Optional custom builder for the OK button.
   final Widget Function(BuildContext context)? okButtonBuilder;
@@ -203,6 +211,8 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
   late int _day;
 
   final CarouselSliderController _dayController = CarouselSliderController();
+  final CarouselSliderController _monthController = CarouselSliderController();
+  final CarouselSliderController _yearController = CarouselSliderController();
 
   /// Builds the default widget for a carousel item (year or month).
   ///
@@ -262,9 +272,20 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                   child: widget.cancelButtonBuilder?.call(context) ??
                       Text(localizations.cancelButtonLabel),
                 ),
+                widget.dateSelectedBuilder != null
+                    ? widget.dateSelectedBuilder!(
+                        context,
+                        DateTime(_year, _month, _day),
+                      )
+                    : Text(
+                        GregorianCalendarDelegate().formatShortDate(
+                          DateTime(_year, _month, _day),
+                          localizations,
+                        ),
+                      ),
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(DateTime(_year, _month));
+                    Navigator.of(context).pop(DateTime(_year, _month, _day));
                   },
                   style: ButtonStyle(
                     padding: widget.okButtonBuilder != null
@@ -302,7 +323,12 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                       ),
                       items: List.generate(
                         DateUtils.getDaysInMonth(_year, _month),
-                        (index) => _buildDayItem(context, index + 1),
+                        (index) => GestureDetector(
+                          onTap: () {
+                            _dayController.animateToPage(index);
+                          },
+                          child: _buildDayItem(context, index + 1),
+                        ),
                       ),
                     );
                   }),
@@ -311,6 +337,7 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                 Expanded(
                   child: LayoutBuilder(builder: (context, constraints) {
                     return CarouselSlider(
+                      carouselController: _monthController,
                       options: CarouselOptions(
                         aspectRatio:
                             constraints.maxWidth / constraints.maxHeight,
@@ -325,7 +352,12 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                       ),
                       items: List.generate(
                         12,
-                        (index) => _buildMonthItem(context, index + 1),
+                        (index) => GestureDetector(
+                          onTap: () {
+                            _monthController.animateToPage(index);
+                          },
+                          child: _buildMonthItem(context, index + 1),
+                        ),
                       ),
                     );
                   }),
@@ -335,6 +367,7 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       return CarouselSlider(
+                        carouselController: _yearController,
                         options: CarouselOptions(
                           aspectRatio:
                               constraints.maxWidth / constraints.maxHeight,
@@ -351,7 +384,12 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                           Utils.yearsLength(widget.firstYear, widget.lastYear),
                           (index) {
                             final year = widget.firstYear + index;
-                            return _buildYearItem(context, year);
+                            return GestureDetector(
+                              onTap: () {
+                                _yearController.animateToPage(index);
+                              },
+                              child: _buildYearItem(context, year),
+                            );
                           },
                         ),
                       );
@@ -375,6 +413,7 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
       _day = daysInMonth;
     }
     setState(() {});
+    _dayController.jumpToPage(_day - 1);
   }
 
   void _onMonthChanged(int index) {
@@ -392,5 +431,6 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
   void _onDayChanged(int index) {
     _day = index + 1;
     widget.onDayChanged?.call(_day);
+    setState(() {});
   }
 }
