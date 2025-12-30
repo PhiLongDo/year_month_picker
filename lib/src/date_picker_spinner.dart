@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:year_month_picker/src/utils.dart';
 
+import 'components/default_text_button.dart';
 import 'validations.dart';
 
 /// Displays a bottom sheet allowing the user to pick a day, month, and year.
@@ -260,17 +261,12 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextButton(
+                DefaultTextButton(
                   onPressed: () {
                     Navigator.of(context).pop(null);
                   },
-                  style: ButtonStyle(
-                    padding: widget.okButtonBuilder != null
-                        ? WidgetStateProperty.all(const EdgeInsets.all(0))
-                        : null,
-                  ),
-                  child: widget.cancelButtonBuilder?.call(context) ??
-                      Text(localizations.cancelButtonLabel),
+                  label: localizations.cancelButtonLabel,
+                  childBuilder: widget.cancelButtonBuilder,
                 ),
                 widget.dateSelectedBuilder != null
                     ? widget.dateSelectedBuilder!(
@@ -283,17 +279,12 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                           localizations,
                         ),
                       ),
-                TextButton(
+                DefaultTextButton(
                   onPressed: () {
                     Navigator.of(context).pop(DateTime(_year, _month, _day));
                   },
-                  style: ButtonStyle(
-                    padding: widget.okButtonBuilder != null
-                        ? WidgetStateProperty.all(const EdgeInsets.all(0))
-                        : null,
-                  ),
-                  child: widget.okButtonBuilder?.call(context) ??
-                      Text(localizations.okButtonLabel),
+                  label: localizations.okButtonLabel,
+                  childBuilder: widget.okButtonBuilder,
                 )
               ],
             ),
@@ -306,46 +297,43 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
               children: [
                 // Day
                 Expanded(
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    return CarouselSlider(
-                      carouselController: _dayController,
-                      options: CarouselOptions(
-                        aspectRatio:
-                            constraints.maxWidth / constraints.maxHeight,
-                        initialPage: _day - 1,
-                        enlargeFactor: 0.38,
-                        viewportFraction: 0.3,
-                        scrollDirection: Axis.vertical,
-                        enlargeCenterPage: true,
-                        onPageChanged: (index, _) {
-                          _onDayChanged(index);
-                        },
-                      ),
-                      items: List.generate(
-                        DateUtils.getDaysInMonth(_year, _month),
-                        (index) => GestureDetector(
-                          onTap: () {
-                            _dayController.animateToPage(index);
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return CarouselSlider(
+                        carouselController: _dayController,
+                        options: _createCarouselOptions(
+                          aspectRatio:
+                              constraints.maxWidth / constraints.maxHeight,
+                          initialPage: _day - 1,
+                          onPageChanged: (index, _) {
+                            _onDayChanged(index);
                           },
-                          child: _buildDayItem(context, index + 1),
                         ),
-                      ),
-                    );
-                  }),
+                        items: List.generate(
+                          DateUtils.getDaysInMonth(_year, _month),
+                          (index) => GestureDetector(
+                            onTap: () {
+                              _dayController.animateToPage(
+                                index,
+                                duration: const Duration(milliseconds: 200),
+                              );
+                            },
+                            child: _buildDayItem(context, index + 1),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
                 // Month
                 Expanded(
                   child: LayoutBuilder(builder: (context, constraints) {
                     return CarouselSlider(
                       carouselController: _monthController,
-                      options: CarouselOptions(
+                      options: _createCarouselOptions(
                         aspectRatio:
                             constraints.maxWidth / constraints.maxHeight,
                         initialPage: _month - 1,
-                        enlargeFactor: 0.38,
-                        viewportFraction: 0.3,
-                        scrollDirection: Axis.vertical,
-                        enlargeCenterPage: true,
                         onPageChanged: (index, _) {
                           _onMonthChanged(index);
                         },
@@ -354,7 +342,10 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                         12,
                         (index) => GestureDetector(
                           onTap: () {
-                            _monthController.animateToPage(index);
+                            _monthController.animateToPage(
+                              index,
+                              duration: const Duration(milliseconds: 200),
+                            );
                           },
                           child: _buildMonthItem(context, index + 1),
                         ),
@@ -368,14 +359,10 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                     builder: (context, constraints) {
                       return CarouselSlider(
                         carouselController: _yearController,
-                        options: CarouselOptions(
+                        options: _createCarouselOptions(
                           aspectRatio:
                               constraints.maxWidth / constraints.maxHeight,
                           initialPage: _year - widget.firstYear,
-                          enlargeFactor: 0.38,
-                          viewportFraction: 0.3,
-                          scrollDirection: Axis.vertical,
-                          enlargeCenterPage: true,
                           onPageChanged: (index, _) {
                             _onYearChanged(index);
                           },
@@ -386,7 +373,10 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                             final year = widget.firstYear + index;
                             return GestureDetector(
                               onTap: () {
-                                _yearController.animateToPage(index);
+                                _yearController.animateToPage(
+                                  index,
+                                  duration: const Duration(milliseconds: 200),
+                                );
                               },
                               child: _buildYearItem(context, year),
                             );
@@ -401,6 +391,23 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
           ),
         ],
       ),
+    );
+  }
+
+  CarouselOptions _createCarouselOptions({
+    required int initialPage,
+    required double aspectRatio,
+    required Function(int index, CarouselPageChangedReason reason)
+        onPageChanged,
+  }) {
+    return CarouselOptions(
+      aspectRatio: aspectRatio,
+      initialPage: initialPage,
+      enlargeFactor: 0.38,
+      viewportFraction: 0.3,
+      scrollDirection: Axis.vertical,
+      enlargeCenterPage: true,
+      onPageChanged: onPageChanged,
     );
   }
 

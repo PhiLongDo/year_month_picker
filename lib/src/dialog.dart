@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:year_month_picker/src/utils.dart';
 
+import 'components/default_text_button.dart';
 import 'components/dropdown.dart';
 import 'components/year_month_text.dart';
 import 'validations.dart';
@@ -406,29 +407,19 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
       mainAxisSize: MainAxisSize.min,
       spacing: 8.0,
       children: [
-        TextButton(
+        DefaultTextButton(
           onPressed: () {
             Navigator.of(context).pop(null);
           },
-          style: ButtonStyle(
-            padding: widget.okButtonBuilder != null
-                ? WidgetStateProperty.all(const EdgeInsets.all(0))
-                : null,
-          ),
-          child: widget.cancelButtonBuilder?.call(context) ??
-              Text(localizations.cancelButtonLabel),
+          label: localizations.cancelButtonLabel,
+          childBuilder: widget.cancelButtonBuilder,
         ),
-        TextButton(
+        DefaultTextButton(
           onPressed: () {
             Navigator.of(context).pop(DateTime(_year, _month));
           },
-          style: ButtonStyle(
-            padding: widget.okButtonBuilder != null
-                ? WidgetStateProperty.all(const EdgeInsets.all(0))
-                : null,
-          ),
-          child: widget.okButtonBuilder?.call(context) ??
-              Text(localizations.okButtonLabel),
+          label: localizations.okButtonLabel,
+          childBuilder: widget.okButtonBuilder,
         ),
       ],
     );

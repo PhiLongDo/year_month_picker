@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:year_month_picker/src/utils.dart';
 
+import 'components/default_text_button.dart';
 import 'validations.dart';
 
 /// Displays a bottom sheet allowing the user to pick a year and month.
@@ -186,6 +187,9 @@ class _YearMonthPickerBottomSheetState
   late int _year;
   late int _month;
 
+  final CarouselSliderController _monthController = CarouselSliderController();
+  final CarouselSliderController _yearController = CarouselSliderController();
+
   /// Builds the default widget for a carousel item (year or month).
   ///
   /// Displays the [number] centered in a decorated container.
@@ -229,29 +233,19 @@ class _YearMonthPickerBottomSheetState
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextButton(
+                DefaultTextButton(
                   onPressed: () {
                     Navigator.of(context).pop(null);
                   },
-                  style: ButtonStyle(
-                    padding: widget.okButtonBuilder != null
-                        ? WidgetStateProperty.all(const EdgeInsets.all(0))
-                        : null,
-                  ),
-                  child: widget.cancelButtonBuilder?.call(context) ??
-                      Text(localizations.cancelButtonLabel),
+                  label: localizations.cancelButtonLabel,
+                  childBuilder: widget.cancelButtonBuilder,
                 ),
-                TextButton(
+                DefaultTextButton(
                   onPressed: () {
                     Navigator.of(context).pop(DateTime(_year, _month));
                   },
-                  style: ButtonStyle(
-                    padding: widget.okButtonBuilder != null
-                        ? WidgetStateProperty.all(const EdgeInsets.all(0))
-                        : null,
-                  ),
-                  child: widget.okButtonBuilder?.call(context) ??
-                      Text(localizations.okButtonLabel),
+                  label: localizations.okButtonLabel,
+                  childBuilder: widget.okButtonBuilder,
                 )
               ],
             ),
@@ -265,14 +259,11 @@ class _YearMonthPickerBottomSheetState
                 Expanded(
                   child: LayoutBuilder(builder: (context, constraints) {
                     return CarouselSlider(
-                      options: CarouselOptions(
+                      carouselController: _monthController,
+                      options: _createCarouselOptions(
                         aspectRatio:
                             constraints.maxWidth / constraints.maxHeight,
                         initialPage: _initYearMonth.month - 1,
-                        enlargeFactor: 0.38,
-                        viewportFraction: 0.3,
-                        scrollDirection: Axis.vertical,
-                        enlargeCenterPage: true,
                         onPageChanged: (index, _) {
                           _month = index + 1;
                           widget.onMonthChanged?.call(_month);
@@ -280,7 +271,15 @@ class _YearMonthPickerBottomSheetState
                       ),
                       items: List.generate(
                         12,
-                        (index) => _buildMonthItem(context, index + 1),
+                        (index) => GestureDetector(
+                          onTap: () {
+                            _monthController.animateToPage(
+                              index,
+                              duration: const Duration(milliseconds: 200),
+                            );
+                          },
+                          child: _buildMonthItem(context, index + 1),
+                        ),
                       ),
                     );
                   }),
@@ -289,14 +288,11 @@ class _YearMonthPickerBottomSheetState
                   child: LayoutBuilder(
                     builder: (context, constraints) {
                       return CarouselSlider(
-                        options: CarouselOptions(
+                        carouselController: _yearController,
+                        options: _createCarouselOptions(
                           aspectRatio:
                               constraints.maxWidth / constraints.maxHeight,
                           initialPage: _initYearMonth.year - widget.firstYear,
-                          enlargeFactor: 0.38,
-                          viewportFraction: 0.3,
-                          scrollDirection: Axis.vertical,
-                          enlargeCenterPage: true,
                           onPageChanged: (index, _) {
                             _year = widget.firstYear + index;
                             widget.onYearChanged?.call(_year);
@@ -306,7 +302,15 @@ class _YearMonthPickerBottomSheetState
                           Utils.yearsLength(widget.firstYear, widget.lastYear),
                           (index) {
                             final year = widget.firstYear + index;
-                            return _buildYearItem(context, year);
+                            return GestureDetector(
+                              onTap: () {
+                                _yearController.animateToPage(
+                                  index,
+                                  duration: const Duration(milliseconds: 200),
+                                );
+                              },
+                              child: _buildYearItem(context, year),
+                            );
                           },
                         ),
                       );
@@ -318,6 +322,23 @@ class _YearMonthPickerBottomSheetState
           ),
         ],
       ),
+    );
+  }
+
+  CarouselOptions _createCarouselOptions({
+    required int initialPage,
+    required double aspectRatio,
+    required Function(int index, CarouselPageChangedReason reason)
+        onPageChanged,
+  }) {
+    return CarouselOptions(
+      aspectRatio: aspectRatio,
+      initialPage: initialPage,
+      enlargeFactor: 0.38,
+      viewportFraction: 0.3,
+      scrollDirection: Axis.vertical,
+      enlargeCenterPage: true,
+      onPageChanged: onPageChanged,
     );
   }
 }
