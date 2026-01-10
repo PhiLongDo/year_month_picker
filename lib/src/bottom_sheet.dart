@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:year_month_picker/src/utils.dart';
 
 import 'components/default_text_button.dart';
+import 'constants.dart';
 import 'validations.dart';
 
 /// Displays a bottom sheet allowing the user to pick a year and month.
@@ -32,6 +33,7 @@ import 'validations.dart';
 /// - `onYearChanged` (optional): Callback when the year changes.
 /// - `onMonthChanged` (optional): Callback when the month changes.
 /// - `showDragHandle` (optional): Whether to show a drag handle on the sheet.
+/// - `spinnerHeight` (optional): Height of the spinner (carousel) area. Defaults to `defaultSpinnerHeight`.
 ///
 /// Returns:
 /// - `Future<DateTime?>`: Resolves to the selected year and month as a `DateTime` if confirmed,
@@ -56,6 +58,7 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   void Function(int year)? onYearChanged,
   void Function(int month)? onMonthChanged,
   bool? showDragHandle,
+  double spinnerHeight = defaultSpinnerHeight,
 }) {
   validateYearMonthPickerParams(
     lastYear: lastYear,
@@ -73,6 +76,7 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
     yearItemBuilder: yearItemBuilder,
     onMonthChanged: onMonthChanged,
     onYearChanged: onYearChanged,
+    spinnerHeight: spinnerHeight,
   );
 
   if (textDirection != null) {
@@ -86,7 +90,8 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
       child: bottomSheet,
     );
   }
-  return showModalBottomSheet<DateTime?>(
+
+  return Utils.showCustomModalBottomSheet<DateTime?>(
     context: context,
     useSafeArea: true,
     showDragHandle: showDragHandle,
@@ -119,6 +124,7 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
     this.cancelButtonBuilder,
     this.onYearChanged,
     this.onMonthChanged,
+    this.spinnerHeight = defaultSpinnerHeight,
     DateTime? initialYearMonth,
   }) {
     validateYearMonthPickerParams(
@@ -156,6 +162,9 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
 
   /// Callback invoked when the selected month changes.
   final void Function(int month)? onMonthChanged;
+
+  /// Height of the spinner (carousel) area.
+  final double spinnerHeight;
 
   @override
   State<_YearMonthPickerBottomSheet> createState() =>
@@ -251,71 +260,31 @@ class _YearMonthPickerBottomSheetState
             ),
           ),
           const Divider(),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 180),
+          SizedBox(
+            height: widget.spinnerHeight,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    return CarouselSlider(
-                      carouselController: _monthController,
-                      options: _createCarouselOptions(
-                        aspectRatio:
-                            constraints.maxWidth / constraints.maxHeight,
-                        initialPage: _initYearMonth.month - 1,
-                        onPageChanged: (index, _) {
-                          _month = index + 1;
-                          widget.onMonthChanged?.call(_month);
-                        },
-                      ),
-                      items: List.generate(
-                        12,
-                        (index) => GestureDetector(
-                          onTap: () {
-                            _monthController.animateToPage(
-                              index,
-                              duration: const Duration(milliseconds: 200),
-                            );
-                          },
-                          child: _buildMonthItem(context, index + 1),
-                        ),
-                      ),
-                    );
-                  }),
+                // Month
+                Utils.buildCarouselSlider(
+                  controller: _monthController,
+                  itemCount: 12,
+                  initialPage: _initYearMonth.month - 1,
+                  onPageChanged: (index) => _onMonthChanged(index),
+                  itemChild: (index) => _buildMonthItem(context, index + 1),
                 ),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return CarouselSlider(
-                        carouselController: _yearController,
-                        options: _createCarouselOptions(
-                          aspectRatio:
-                              constraints.maxWidth / constraints.maxHeight,
-                          initialPage: _initYearMonth.year - widget.firstYear,
-                          onPageChanged: (index, _) {
-                            _year = widget.firstYear + index;
-                            widget.onYearChanged?.call(_year);
-                          },
-                        ),
-                        items: List.generate(
-                          Utils.yearsLength(widget.firstYear, widget.lastYear),
-                          (index) {
-                            final year = widget.firstYear + index;
-                            return GestureDetector(
-                              onTap: () {
-                                _yearController.animateToPage(
-                                  index,
-                                  duration: const Duration(milliseconds: 200),
-                                );
-                              },
-                              child: _buildYearItem(context, year),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
+
+                // Year
+                Utils.buildCarouselSlider(
+                  controller: _yearController,
+                  itemCount:
+                      Utils.yearsLength(widget.firstYear, widget.lastYear),
+                  initialPage: _initYearMonth.year - widget.firstYear,
+                  onPageChanged: (index) => _onYearChanged(index),
+                  itemChild: (index) {
+                    final year = widget.firstYear + index;
+                    return _buildYearItem(context, year);
+                  },
                 ),
               ],
             ),
@@ -325,20 +294,13 @@ class _YearMonthPickerBottomSheetState
     );
   }
 
-  CarouselOptions _createCarouselOptions({
-    required int initialPage,
-    required double aspectRatio,
-    required Function(int index, CarouselPageChangedReason reason)
-        onPageChanged,
-  }) {
-    return CarouselOptions(
-      aspectRatio: aspectRatio,
-      initialPage: initialPage,
-      enlargeFactor: 0.38,
-      viewportFraction: 0.3,
-      scrollDirection: Axis.vertical,
-      enlargeCenterPage: true,
-      onPageChanged: onPageChanged,
-    );
+  void _onMonthChanged(int index) {
+    _month = index + 1;
+    widget.onMonthChanged?.call(_month);
+  }
+
+  void _onYearChanged(int index) {
+    _year = widget.firstYear + index;
+    widget.onYearChanged?.call(_year);
   }
 }

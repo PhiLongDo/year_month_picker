@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:year_month_picker/src/utils.dart';
 
 import 'components/default_text_button.dart';
+import 'constants.dart';
 import 'validations.dart';
 
 /// Displays a bottom sheet allowing the user to pick a day, month, and year.
@@ -35,6 +36,7 @@ import 'validations.dart';
 /// - `onMonthChanged` (optional): Callback when the month changes.
 /// - `onDayChanged` (optional): Callback when the day changes.
 /// - `showDragHandle` (optional): Whether to show a drag handle on the sheet.
+/// - `spinnerHeight` (optional): Height of the spinner (carousel) area. Defaults to `defaultSpinnerHeight`.
 ///
 /// Returns:
 /// - `Future<DateTime?>`: Resolves to the selected date (year, month, day) as a `DateTime` if confirmed,
@@ -62,6 +64,7 @@ Future<DateTime?> showDatePickerSpinner({
   void Function(int month)? onMonthChanged,
   void Function(int day)? onDayChanged,
   bool? showDragHandle,
+  double spinnerHeight = defaultSpinnerHeight,
 }) {
   validateYearMonthPickerParams(
     lastYear: lastYear,
@@ -82,6 +85,7 @@ Future<DateTime?> showDatePickerSpinner({
     onMonthChanged: onMonthChanged,
     onYearChanged: onYearChanged,
     onDayChanged: onDayChanged,
+    spinnerHeight: spinnerHeight,
   );
 
   if (textDirection != null) {
@@ -95,7 +99,7 @@ Future<DateTime?> showDatePickerSpinner({
       child: bottomSheet,
     );
   }
-  return showModalBottomSheet<DateTime?>(
+  return Utils.showCustomModalBottomSheet<DateTime?>(
     context: context,
     useSafeArea: true,
     showDragHandle: showDragHandle,
@@ -131,6 +135,7 @@ class _DatePickerSpinner extends StatefulWidget {
     this.onYearChanged,
     this.onMonthChanged,
     this.onDayChanged,
+    this.spinnerHeight = defaultSpinnerHeight,
     DateTime? initialDate,
   }) {
     validateYearMonthPickerParams(
@@ -178,6 +183,9 @@ class _DatePickerSpinner extends StatefulWidget {
 
   /// Callback invoked when the selected day changes.
   final void Function(int day)? onDayChanged;
+
+  /// Height of the spinner (carousel) area.
+  final double spinnerHeight;
 
   @override
   State<_DatePickerSpinner> createState() => _DatePickerSpinnerState();
@@ -290,124 +298,46 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
             ),
           ),
           const Divider(),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 180),
+          SizedBox(
+            height: widget.spinnerHeight,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Day
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return CarouselSlider(
-                        carouselController: _dayController,
-                        options: _createCarouselOptions(
-                          aspectRatio:
-                              constraints.maxWidth / constraints.maxHeight,
-                          initialPage: _day - 1,
-                          onPageChanged: (index, _) {
-                            _onDayChanged(index);
-                          },
-                        ),
-                        items: List.generate(
-                          DateUtils.getDaysInMonth(_year, _month),
-                          (index) => GestureDetector(
-                            onTap: () {
-                              _dayController.animateToPage(
-                                index,
-                                duration: const Duration(milliseconds: 200),
-                              );
-                            },
-                            child: _buildDayItem(context, index + 1),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                Utils.buildCarouselSlider(
+                  controller: _dayController,
+                  itemCount: DateUtils.getDaysInMonth(_year, _month),
+                  initialPage: _day - 1,
+                  onPageChanged: (index) => _onDayChanged(index),
+                  itemChild: (index) => _buildDayItem(context, index + 1),
                 ),
+
                 // Month
-                Expanded(
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    return CarouselSlider(
-                      carouselController: _monthController,
-                      options: _createCarouselOptions(
-                        aspectRatio:
-                            constraints.maxWidth / constraints.maxHeight,
-                        initialPage: _month - 1,
-                        onPageChanged: (index, _) {
-                          _onMonthChanged(index);
-                        },
-                      ),
-                      items: List.generate(
-                        12,
-                        (index) => GestureDetector(
-                          onTap: () {
-                            _monthController.animateToPage(
-                              index,
-                              duration: const Duration(milliseconds: 200),
-                            );
-                          },
-                          child: _buildMonthItem(context, index + 1),
-                        ),
-                      ),
-                    );
-                  }),
+                Utils.buildCarouselSlider(
+                  controller: _monthController,
+                  itemCount: 12,
+                  initialPage: _month - 1,
+                  onPageChanged: (index) => _onMonthChanged(index),
+                  itemChild: (index) => _buildMonthItem(context, index + 1),
                 ),
+
                 // Year
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return CarouselSlider(
-                        carouselController: _yearController,
-                        options: _createCarouselOptions(
-                          aspectRatio:
-                              constraints.maxWidth / constraints.maxHeight,
-                          initialPage: _year - widget.firstYear,
-                          onPageChanged: (index, _) {
-                            _onYearChanged(index);
-                          },
-                        ),
-                        items: List.generate(
-                          Utils.yearsLength(widget.firstYear, widget.lastYear),
-                          (index) {
-                            final year = widget.firstYear + index;
-                            return GestureDetector(
-                              onTap: () {
-                                _yearController.animateToPage(
-                                  index,
-                                  duration: const Duration(milliseconds: 200),
-                                );
-                              },
-                              child: _buildYearItem(context, year),
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
+                Utils.buildCarouselSlider(
+                  controller: _yearController,
+                  itemCount:
+                      Utils.yearsLength(widget.firstYear, widget.lastYear),
+                  initialPage: _year - widget.firstYear,
+                  onPageChanged: (index) => _onYearChanged(index),
+                  itemChild: (index) {
+                    final year = widget.firstYear + index;
+                    return _buildYearItem(context, year);
+                  },
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  CarouselOptions _createCarouselOptions({
-    required int initialPage,
-    required double aspectRatio,
-    required Function(int index, CarouselPageChangedReason reason)
-        onPageChanged,
-  }) {
-    return CarouselOptions(
-      aspectRatio: aspectRatio,
-      initialPage: initialPage,
-      enlargeFactor: 0.38,
-      viewportFraction: 0.3,
-      scrollDirection: Axis.vertical,
-      enlargeCenterPage: true,
-      onPageChanged: onPageChanged,
     );
   }
 

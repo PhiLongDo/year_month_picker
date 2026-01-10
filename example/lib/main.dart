@@ -38,39 +38,45 @@ class _MyAppState extends State<MyApp> {
         Locale('vi', 'VN'), // Hebrew
       ],
       home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 24,
-            children: [
-              yearMonthSelected != null
-                  ? Text(DateFormat.yMd().format(yearMonthSelected!))
-                  : const Text('No data'),
-              BottomSheetPreview(
-                initYearMonth: yearMonthSelected,
-                onYearMonthSelected: (dateTime) {
-                  setState(() {
-                    yearMonthSelected = dateTime;
-                  });
-                },
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 24,
+                children: [
+                  yearMonthSelected != null
+                      ? Text(DateFormat.yMd().format(yearMonthSelected!))
+                      : const Text('No data'),
+                  BottomSheetPreview(
+                    initYearMonth: yearMonthSelected,
+                    onYearMonthSelected: (dateTime) {
+                      setState(() {
+                        yearMonthSelected = dateTime;
+                      });
+                    },
+                  ),
+                  DialogPreview(
+                    initYearMonth: yearMonthSelected,
+                    onYearMonthSelected: (dateTime) {
+                      setState(() {
+                        yearMonthSelected = dateTime;
+                      });
+                    },
+                  ),
+                  DateSpinnerPreview(
+                    initDate: yearMonthSelected,
+                    onDateSelected: (dateTime) {
+                      setState(() {
+                        yearMonthSelected = dateTime;
+                      });
+                    },
+                  ),
+                ],
               ),
-              DialogPreview(
-                initYearMonth: yearMonthSelected,
-                onYearMonthSelected: (dateTime) {
-                  setState(() {
-                    yearMonthSelected = dateTime;
-                  });
-                },
-              ),
-              DateSpinnerPreview(
-                initDate: yearMonthSelected,
-                onDateSelected: (dateTime) {
-                  setState(() {
-                    yearMonthSelected = dateTime;
-                  });
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),
