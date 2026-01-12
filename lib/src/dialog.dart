@@ -251,26 +251,67 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    Widget child;
+    if (MediaQuery.orientationOf(context) == Orientation.portrait) {
+      child = _buildPortrait(context);
+    } else {
+      child = _buildLandscape(context);
+    }
+
     return Dialog(
       backgroundColor: widget.backgroundColor,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: IntrinsicWidth(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
+        child: child,
+      ),
+    );
+  }
+
+  /// Builds the UI for the dialog in portrait mode.
+  Widget _buildPortrait(BuildContext context) {
+    return IntrinsicWidth(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          widget.helperTextBuilder?.call(context) ?? const SizedBox.shrink(),
+          _buildYearMonthText(),
+          const Divider(),
+          _buildYearSelector(),
+          _buildMonthSelector(),
+          const SizedBox(height: 6.0),
+          _buildActions(context),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the UI for the dialog in landscape mode.
+  Widget _buildLandscape(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Column(
             children: [
               widget.helperTextBuilder?.call(context) ??
                   const SizedBox.shrink(),
               _buildYearMonthText(),
-              const Divider(),
-              _buildYearSelector(),
-              _buildMonthSelector(),
-              const SizedBox(height: 6.0),
+              const Spacer(),
               _buildActions(context),
             ],
           ),
-        ),
+          const VerticalDivider(),
+          IntrinsicWidth(
+            child: Column(
+              children: [
+                _buildYearSelector(),
+                _buildMonthSelector(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -313,10 +354,11 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
           },
           selectedItemBuilder: (BuildContext context) {
             return DecoratedBox(
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(width: 0.2)),
-                ),
-                child: _buildYearItem(context, _year));
+              decoration: const BoxDecoration(
+                border: Border(bottom: BorderSide(width: 0.2)),
+              ),
+              child: _buildYearItem(context, _year),
+            );
           },
           onChanged: (int? newYear) {
             if (newYear != null) {
@@ -348,7 +390,9 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   Widget _buildMonthSelector() {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [for (var i = 0; i < 4; i++) _buildMonthRow(i)],
+      children: [
+        for (var i = 0; i < 4; i++) _buildMonthRow(i),
+      ],
     );
   }
 
@@ -359,6 +403,8 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
   Widget _buildMonthRow(int row) {
     final borderRadius = BorderRadius.circular(8.0);
     final deviceWidth = MediaQuery.of(context).size.width;
+    final isLandscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.min,
@@ -375,10 +421,10 @@ class _YearMonthPickerDialogState extends State<_YearMonthPickerDialog> {
           child: Container(
             constraints: BoxConstraints(
               minWidth: deviceWidth > 412 ? 100 : 80,
-              minHeight: 60,
+              minHeight: isLandscape ? 45 : 60,
             ),
-            padding: const EdgeInsets.symmetric(
-              vertical: 16.0,
+            padding: EdgeInsets.symmetric(
+              vertical: isLandscape ? 8.0 : 16.0,
               horizontal: 4.0,
             ),
             decoration: BoxDecoration(
