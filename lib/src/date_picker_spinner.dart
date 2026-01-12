@@ -6,10 +6,10 @@ import 'components/default_text_button.dart';
 import 'constants.dart';
 import 'validations.dart';
 
-/// Displays a bottom sheet allowing the user to pick a year and month.
+/// Displays a bottom sheet allowing the user to pick a day, month, and year.
 ///
-/// This function shows a modal bottom sheet with two vertical carousels for selecting
-/// a year and a month. It supports UI customization, localization, and callbacks for
+/// This function shows a modal bottom sheet with three vertical carousels for selecting
+/// a day, a month, and a year. It supports UI customization, localization, and callbacks for
 /// selection changes. The result is returned asynchronously when the user confirms or
 /// cancels the picker.
 ///
@@ -24,21 +24,24 @@ import 'validations.dart';
 /// - `locale` (optional): Custom locale for the picker.
 /// - `textDirection` (optional): Text direction (LTR/RTL).
 /// - `anchorPoint` (optional): The anchor point for the bottom sheet position.
-/// - `initialYearMonth` (optional): The initial year and month to display (defaults to now).
+/// - `initialDate` (optional): The initial date (day, month, year) to display (defaults to now).
 /// - `backgroundColor` (optional): Background color of the bottom sheet.
 /// - `yearItemBuilder` (optional): Custom builder for year items.
 /// - `monthItemBuilder` (optional): Custom builder for month items.
+/// - `dayItemBuilder` (optional): Custom builder for day items.
+/// - `dateSelectedBuilder` (optional): Custom builder for the selected date.
 /// - `okButtonBuilder` (optional): Custom builder for the OK button.
 /// - `cancelButtonBuilder` (optional): Custom builder for the Cancel button.
 /// - `onYearChanged` (optional): Callback when the year changes.
 /// - `onMonthChanged` (optional): Callback when the month changes.
+/// - `onDayChanged` (optional): Callback when the day changes.
 /// - `showDragHandle` (optional): Whether to show a drag handle on the sheet.
 /// - `spinnerHeight` (optional): Height of the spinner (carousel) area. Defaults to `defaultSpinnerHeight`.
 ///
 /// Returns:
-/// - `Future<DateTime?>`: Resolves to the selected year and month as a `DateTime` if confirmed,
+/// - `Future<DateTime?>`: Resolves to the selected date (year, month, day) as a `DateTime` if confirmed,
 ///   or `null` if the user cancels or dismisses the sheet.
-Future<DateTime?> showYearMonthPickerBottomSheet({
+Future<DateTime?> showDatePickerSpinner({
   required BuildContext context,
   Color? barrierColor,
   String? barrierLabel,
@@ -49,33 +52,39 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   Offset? anchorPoint,
   required int lastYear,
   required int firstYear,
-  DateTime? initialYearMonth,
+  DateTime? initialDate,
   Color? backgroundColor,
   Widget Function(BuildContext context, int year)? yearItemBuilder,
   Widget Function(BuildContext context, int month)? monthItemBuilder,
+  Widget Function(BuildContext context, int day)? dayItemBuilder,
+  Widget Function(BuildContext context, DateTime date)? dateSelectedBuilder,
   Widget Function(BuildContext context)? okButtonBuilder,
   Widget Function(BuildContext context)? cancelButtonBuilder,
   void Function(int year)? onYearChanged,
   void Function(int month)? onMonthChanged,
+  void Function(int day)? onDayChanged,
   bool? showDragHandle,
   double spinnerHeight = defaultSpinnerHeight,
 }) {
   validateYearMonthPickerParams(
     lastYear: lastYear,
     firstYear: firstYear,
-    initialYearMonth: initialYearMonth,
+    initialYearMonth: initialDate,
   );
 
-  Widget bottomSheet = _YearMonthPickerBottomSheet(
+  Widget bottomSheet = _DatePickerSpinner(
     lastYear: lastYear,
     firstYear: firstYear,
-    initialYearMonth: initialYearMonth,
+    initialDate: initialDate,
+    dayItemBuilder: dayItemBuilder,
     monthItemBuilder: monthItemBuilder,
+    yearItemBuilder: yearItemBuilder,
+    dateSelectedBuilder: dateSelectedBuilder,
     cancelButtonBuilder: cancelButtonBuilder,
     okButtonBuilder: okButtonBuilder,
-    yearItemBuilder: yearItemBuilder,
     onMonthChanged: onMonthChanged,
     onYearChanged: onYearChanged,
+    onDayChanged: onDayChanged,
     spinnerHeight: spinnerHeight,
   );
 
@@ -90,7 +99,6 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
       child: bottomSheet,
     );
   }
-
   return Utils.showCustomModalBottomSheet<DateTime?>(
     context: context,
     useSafeArea: true,
@@ -107,32 +115,35 @@ Future<DateTime?> showYearMonthPickerBottomSheet({
   );
 }
 
-/// A private [StatefulWidget] that represents the content of the year/month picker bottom sheet.
+/// A private [StatefulWidget] that represents the content of the day/month/year picker bottom sheet.
 ///
-/// This widget is responsible for displaying the UI for year and month selection using
+/// This widget is responsible for displaying the UI for day, month and year selection using
 /// carousels, handling user interactions, and managing the internal state of the selected date.
-class _YearMonthPickerBottomSheet extends StatefulWidget {
-  /// Creates an instance of [_YearMonthPickerBottomSheet].
+class _DatePickerSpinner extends StatefulWidget {
+  /// Creates an instance of [_DatePickerSpinner].
   ///
   /// Parameters are typically passed from [showDatePickerSpinner].
-  _YearMonthPickerBottomSheet({
+  _DatePickerSpinner({
     required this.lastYear,
     required this.firstYear,
     this.yearItemBuilder,
     this.monthItemBuilder,
+    this.dayItemBuilder,
     this.okButtonBuilder,
     this.cancelButtonBuilder,
+    this.dateSelectedBuilder,
     this.onYearChanged,
     this.onMonthChanged,
+    this.onDayChanged,
     this.spinnerHeight = defaultSpinnerHeight,
-    DateTime? initialYearMonth,
+    DateTime? initialDate,
   }) {
     validateYearMonthPickerParams(
       lastYear: lastYear,
       firstYear: firstYear,
-      initialYearMonth: initialYearMonth,
+      initialYearMonth: initialDate,
     );
-    this.initialYearMonth = initialYearMonth ?? DateTime.now();
+    this.initialDate = initialDate ?? DateTime.now();
   }
 
   /// The maximum selectable year.
@@ -141,15 +152,22 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
   /// The minimum selectable year.
   final int firstYear;
 
-  /// The initially selected year and month.
+  /// The initially selected year, month, and day.
   /// Defaults to the current date and time if not specified.
-  late final DateTime initialYearMonth;
+  late final DateTime initialDate;
 
   /// Optional custom builder for year items in the carousel.
   final Widget Function(BuildContext context, int year)? yearItemBuilder;
 
   /// Optional custom builder for month items in the carousel.
   final Widget Function(BuildContext context, int month)? monthItemBuilder;
+
+  /// Optional custom builder for day items in the carousel.
+  final Widget Function(BuildContext context, int day)? dayItemBuilder;
+
+  /// Optional custom builder for the selected date.
+  final Widget Function(BuildContext context, DateTime date)?
+      dateSelectedBuilder;
 
   /// Optional custom builder for the OK button.
   final Widget Function(BuildContext context)? okButtonBuilder;
@@ -163,21 +181,28 @@ class _YearMonthPickerBottomSheet extends StatefulWidget {
   /// Callback invoked when the selected month changes.
   final void Function(int month)? onMonthChanged;
 
+  /// Callback invoked when the selected day changes.
+  final void Function(int day)? onDayChanged;
+
   /// Height of the spinner (carousel) area.
   final double spinnerHeight;
 
   @override
-  State<_YearMonthPickerBottomSheet> createState() =>
-      _YearMonthPickerBottomSheetState();
+  State<_DatePickerSpinner> createState() => _DatePickerSpinnerState();
 }
 
-/// The state for the [_YearMonthPickerBottomSheet].
+/// The state for the [_DatePickerSpinner].
 ///
-/// Manages the currently selected year and month, and builds the UI
+/// Manages the currently selected year, month, and day, and builds the UI
 /// for the bottom sheet content. It handles user interactions from the carousels
 /// and buttons, updating the display and invoking callbacks accordingly.
-class _YearMonthPickerBottomSheetState
-    extends State<_YearMonthPickerBottomSheet> {
+class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
+  /// Returns the effective day item builder.
+  ///
+  /// Defaults to [_defaultBuildItem] if [widget.dayItemBuilder] is null.
+  Widget Function(BuildContext, int day) get _buildDayItem =>
+      widget.dayItemBuilder ?? _defaultBuildItem;
+
   /// Returns the effective year item builder.
   ///
   /// Defaults to [_defaultBuildItem] if [widget.yearItemBuilder] is null.
@@ -190,12 +215,11 @@ class _YearMonthPickerBottomSheetState
   Widget Function(BuildContext, int month) get _buildMonthItem =>
       widget.monthItemBuilder ?? _defaultBuildItem;
 
-  /// Gets the initial year and month from the widget.
-  DateTime get _initYearMonth => widget.initialYearMonth;
-
   late int _year;
   late int _month;
+  late int _day;
 
+  final CarouselSliderController _dayController = CarouselSliderController();
   final CarouselSliderController _monthController = CarouselSliderController();
   final CarouselSliderController _yearController = CarouselSliderController();
 
@@ -220,11 +244,14 @@ class _YearMonthPickerBottomSheetState
 
   @override
   void initState() {
-    _year = _initYearMonth.year;
-    _month = _initYearMonth.month;
+    _year = widget.initialDate.year;
+    _month = widget.initialDate.month;
+    _day = widget.initialDate.day;
+
     // Notify listeners about the initial state.
     widget.onYearChanged?.call(_year);
     widget.onMonthChanged?.call(_month);
+    widget.onDayChanged?.call(_day);
     super.initState();
   }
 
@@ -233,7 +260,7 @@ class _YearMonthPickerBottomSheetState
     final MaterialLocalizations localizations =
         MaterialLocalizations.of(context);
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -249,9 +276,20 @@ class _YearMonthPickerBottomSheetState
                   label: localizations.cancelButtonLabel,
                   childBuilder: widget.cancelButtonBuilder,
                 ),
+                widget.dateSelectedBuilder != null
+                    ? widget.dateSelectedBuilder!(
+                        context,
+                        DateTime(_year, _month, _day),
+                      )
+                    : Text(
+                        const GregorianCalendarDelegate().formatShortDate(
+                          DateTime(_year, _month, _day),
+                          localizations,
+                        ),
+                      ),
                 DefaultTextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(DateTime(_year, _month));
+                    Navigator.of(context).pop(DateTime(_year, _month, _day));
                   },
                   label: localizations.okButtonLabel,
                   childBuilder: widget.okButtonBuilder,
@@ -265,11 +303,20 @@ class _YearMonthPickerBottomSheetState
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // Day
+                Utils.buildCarouselSlider(
+                  controller: _dayController,
+                  itemCount: DateUtils.getDaysInMonth(_year, _month),
+                  initialPage: _day - 1,
+                  onPageChanged: (index) => _onDayChanged(index),
+                  itemChild: (index) => _buildDayItem(context, index + 1),
+                ),
+
                 // Month
                 Utils.buildCarouselSlider(
                   controller: _monthController,
                   itemCount: 12,
-                  initialPage: _initYearMonth.month - 1,
+                  initialPage: _month - 1,
                   onPageChanged: (index) => _onMonthChanged(index),
                   itemChild: (index) => _buildMonthItem(context, index + 1),
                 ),
@@ -279,7 +326,7 @@ class _YearMonthPickerBottomSheetState
                   controller: _yearController,
                   itemCount:
                       Utils.yearsLength(widget.firstYear, widget.lastYear),
-                  initialPage: _initYearMonth.year - widget.firstYear,
+                  initialPage: _year - widget.firstYear,
                   onPageChanged: (index) => _onYearChanged(index),
                   itemChild: (index) {
                     final year = widget.firstYear + index;
@@ -294,13 +341,33 @@ class _YearMonthPickerBottomSheetState
     );
   }
 
-  void _onMonthChanged(int index) {
-    _month = index + 1;
-    widget.onMonthChanged?.call(_month);
-  }
-
   void _onYearChanged(int index) {
     _year = widget.firstYear + index;
     widget.onYearChanged?.call(_year);
+
+    final daysInMonth = DateUtils.getDaysInMonth(_year, _month);
+    if (_day > daysInMonth) {
+      _day = daysInMonth;
+    }
+    setState(() {});
+    _dayController.jumpToPage(_day - 1);
+  }
+
+  void _onMonthChanged(int index) {
+    _month = index + 1;
+    widget.onMonthChanged?.call(_month);
+
+    final daysInMonth = DateUtils.getDaysInMonth(_year, _month);
+    if (_day > daysInMonth) {
+      _day = daysInMonth;
+    }
+    setState(() {});
+    _dayController.jumpToPage(_day - 1);
+  }
+
+  void _onDayChanged(int index) {
+    _day = index + 1;
+    widget.onDayChanged?.call(_day);
+    setState(() {});
   }
 }

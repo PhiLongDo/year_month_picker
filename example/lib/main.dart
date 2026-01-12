@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:year_month_picker_example/date_spinner_preview.dart';
 
 import 'bottom_sheet_preview.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -34,34 +35,48 @@ class _MyAppState extends State<MyApp> {
       ],
       supportedLocales: const [
         Locale('en', 'US'), // English
-        Locale('vi', 'VN'), // Hebrew
+        Locale('vi', 'VN'), // Vietnamese
       ],
       home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 24,
-            children: [
-              yearMonthSelected != null
-                  ? Text(DateFormat.yMMMM().format(yearMonthSelected!))
-                  : const Text('No data'),
-              BottomSheetPreview(
-                initYearMonth: yearMonthSelected,
-                onYearMonthSelected: (dateTime) {
-                  setState(() {
-                    yearMonthSelected = dateTime;
-                  });
-                },
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 24,
+                children: [
+                  yearMonthSelected != null
+                      ? Text(DateFormat.yMd().format(yearMonthSelected!))
+                      : const Text('No data'),
+                  BottomSheetPreview(
+                    initYearMonth: yearMonthSelected,
+                    onYearMonthSelected: (dateTime) {
+                      setState(() {
+                        yearMonthSelected = dateTime;
+                      });
+                    },
+                  ),
+                  DialogPreview(
+                    initYearMonth: yearMonthSelected,
+                    onYearMonthSelected: (dateTime) {
+                      setState(() {
+                        yearMonthSelected = dateTime;
+                      });
+                    },
+                  ),
+                  DateSpinnerPreview(
+                    initDate: yearMonthSelected,
+                    onDateSelected: (dateTime) {
+                      setState(() {
+                        yearMonthSelected = dateTime;
+                      });
+                    },
+                  ),
+                ],
               ),
-              DialogPreview(
-                initYearMonth: yearMonthSelected,
-                onYearMonthSelected: (dateTime) {
-                  setState(() {
-                    yearMonthSelected = dateTime;
-                  });
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),
