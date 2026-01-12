@@ -282,7 +282,7 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                         DateTime(_year, _month, _day),
                       )
                     : Text(
-                        GregorianCalendarDelegate().formatShortDate(
+                        const GregorianCalendarDelegate().formatShortDate(
                           DateTime(_year, _month, _day),
                           localizations,
                         ),
@@ -293,7 +293,7 @@ class _DatePickerSpinnerState extends State<_DatePickerSpinner> {
                   },
                   label: localizations.okButtonLabel,
                   childBuilder: widget.okButtonBuilder,
-                )
+                ),
               ],
             ),
           ),

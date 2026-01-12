@@ -25,8 +25,10 @@ typedef BottomSheetDragStartHandler = void Function(DragStartDetails details);
 /// A callback for when the user stops dragging the bottom sheet.
 ///
 /// Used by [BottomSheet.onDragEnd].
-typedef BottomSheetDragEndHandler = void Function(DragEndDetails details,
-    {required bool isClosing});
+typedef BottomSheetDragEndHandler = void Function(
+  DragEndDetails details, {
+  required bool isClosing,
+});
 
 /// A Material Design bottom sheet.
 ///
@@ -477,7 +479,9 @@ class _DragHandle extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(handleSize.height / 2),
                 color: WidgetStateProperty.resolveAs<Color?>(
-                        dragHandleColor, states) ??
+                      dragHandleColor,
+                      states,
+                    ) ??
                     WidgetStateProperty.resolveAs<Color?>(
                       bottomSheetTheme.dragHandleColor,
                       states,
@@ -504,7 +508,8 @@ class _BottomSheetLayoutWithSizeListener extends SingleChildRenderObjectWidget {
 
   @override
   _RenderBottomSheetLayoutWithSizeListener createRenderObject(
-      BuildContext context) {
+    BuildContext context,
+  ) {
     return _RenderBottomSheetLayoutWithSizeListener(
       onChildSizeChanged: onChildSizeChanged,
       animationValue: animationValue,
@@ -571,7 +576,9 @@ class _RenderBottomSheetLayoutWithSizeListener extends RenderShiftedBox {
 
   @override
   double? computeDryBaseline(
-      covariant BoxConstraints constraints, TextBaseline baseline) {
+    covariant BoxConstraints constraints,
+    TextBaseline baseline,
+  ) {
     final RenderBox? child = this.child;
     if (child == null) {
       return null;
@@ -1069,7 +1076,10 @@ class CustomModalBottomSheetRoute<T> extends PopupRoute<T> {
     final Widget bottomSheet = useSafeArea
         ? SafeArea(bottom: false, child: content)
         : MediaQuery.removePadding(
-            context: context, removeTop: true, child: content);
+            context: context,
+            removeTop: true,
+            child: content,
+          );
 
     return capturedThemes?.wrap(bottomSheet) ?? bottomSheet;
   }
@@ -1161,7 +1171,8 @@ class _BottomSheetDefaultsM3 extends BottomSheetThemeData {
           elevation: 1.0,
           modalElevation: 1.0,
           shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(28.0))),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28.0)),
+          ),
           constraints: const BoxConstraints(maxWidth: 640),
         );
 

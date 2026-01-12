@@ -35,7 +35,7 @@ class _MyAppState extends State<MyApp> {
       ],
       supportedLocales: const [
         Locale('en', 'US'), // English
-        Locale('vi', 'VN'), // Hebrew
+        Locale('vi', 'VN'), // Vietnamese
       ],
       home: Scaffold(
         body: SafeArea(

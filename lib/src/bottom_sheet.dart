@@ -255,7 +255,7 @@ class _YearMonthPickerBottomSheetState
                   },
                   label: localizations.okButtonLabel,
                   childBuilder: widget.okButtonBuilder,
-                )
+                ),
               ],
             ),
           ),
